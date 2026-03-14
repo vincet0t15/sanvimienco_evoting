@@ -3,6 +3,7 @@
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\VoterAuthController;
 use App\Http\Controllers\VoterController;
 use App\Http\Controllers\VoterImportController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');
     Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
+});
+
+Route::prefix('voter')->name('voter.')->group(function () {
+    Route::middleware('guest:voter')->group(function () {
+        Route::get('login', [VoterAuthController::class, 'create'])->name('login');
+        Route::post('login', [VoterAuthController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware('auth:voter')->group(function () {
+        Route::get('dashboard', [VoterAuthController::class, 'dashboard'])->name('dashboard');
+        Route::post('logout', [VoterAuthController::class, 'destroy'])->name('logout');
+    });
 });
 
 require __DIR__.'/settings.php';
