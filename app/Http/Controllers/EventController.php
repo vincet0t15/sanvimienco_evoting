@@ -33,7 +33,7 @@ class EventController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after_or_equal:start_at'],
+            'end_at' => ['required', 'date', 'after:start_at'],
         ]);
 
         Event::create($validated);
@@ -47,7 +47,7 @@ class EventController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after_or_equal:start_at'],
+            'end_at' => ['required', 'date', 'after:start_at'],
         ]);
 
         $event->update($validated);

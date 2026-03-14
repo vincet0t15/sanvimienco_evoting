@@ -66,6 +66,31 @@ function splitDateTime(value: string): { date: string; time: string } {
     return { date, time: normalizeTime(time) };
 }
 
+function toCanonicalDateTime(value: string): string | null {
+    const { date, time } = splitDateTime(value);
+
+    if (!date) {
+        return null;
+    }
+
+    return `${date}T${time || '00:00:00'}`;
+}
+
+function validateDateRange(startAt: string, endAt: string): string | undefined {
+    const start = toCanonicalDateTime(startAt);
+    const end = toCanonicalDateTime(endAt);
+
+    if (!start || !end) {
+        return undefined;
+    }
+
+    if (end <= start) {
+        return 'End date/time must be later than Start date/time.';
+    }
+
+    return undefined;
+}
+
 function DateTimeInput({
     id,
     label,
@@ -172,6 +197,14 @@ export default function EventCreateDialog({ open, setOpen }: Props) {
             name: '',
         });
 
+    const rangeError = useMemo(() => {
+        if (!data.start_at || !data.end_at) {
+            return undefined;
+        }
+
+        return validateDateRange(data.start_at, data.end_at);
+    }, [data.end_at, data.start_at]);
+
     const handleChange = (
         e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
@@ -180,6 +213,13 @@ export default function EventCreateDialog({ open, setOpen }: Props) {
 
     const submit: SubmitEventHandler = (e) => {
         e.preventDefault();
+
+        if (rangeError) {
+            toast.error(rangeError);
+
+            return;
+        }
+
         post('/events', {
             preserveScroll: true,
             onSuccess: () => {
@@ -226,7 +266,7 @@ export default function EventCreateDialog({ open, setOpen }: Props) {
                             label="End"
                             value={data.end_at || ''}
                             onChange={(next) => setData('end_at', next)}
-                            error={errors.end_at}
+                            error={errors.end_at ?? rangeError}
                         />
 
                         <div className="space-y-2">
@@ -243,7 +283,7 @@ export default function EventCreateDialog({ open, setOpen }: Props) {
                         <Button
                             className="w-full"
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || Boolean(rangeError)}
                         >
                             {processing ? (
                                 <span className="flex items-center gap-2">
