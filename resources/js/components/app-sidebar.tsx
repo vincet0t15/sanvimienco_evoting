@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -14,7 +13,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavGroup, NavItem } from '@/types';
+import type { NavGroup } from '@/types';
 
 const mainNavItems: NavGroup[] = [
     {
@@ -27,9 +26,7 @@ const mainNavItems: NavGroup[] = [
             },
         ],
     },
-]
-
-
+];
 
 export function AppSidebar() {
     return (

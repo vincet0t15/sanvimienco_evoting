@@ -1,6 +1,5 @@
-import { PaginatedDataResponse } from '@/types/pagination';
 import { Link } from '@inertiajs/react';
-
+import type { PaginatedDataResponse } from '@/types/pagination';
 
 export default function Pagination({
     data,
