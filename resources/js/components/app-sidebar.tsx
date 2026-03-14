@@ -14,14 +14,25 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavGroup } from '@/types';
+import events from '@/routes/events';
 
 const mainNavItems: NavGroup[] = [
     {
-        title: 'Overview',
+        title: 'General',
         children: [
             {
                 title: 'Dashboard',
                 href: dashboard(),
+                icon: LayoutGrid,
+            },
+        ],
+    },
+    {
+        title: 'Settings',
+        children: [
+            {
+                title: 'Events',
+                href: events.index.url(),
                 icon: LayoutGrid,
             },
         ],
