@@ -1,9 +1,12 @@
 import { useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import { ChevronDownIcon, LoaderCircle } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { ChangeEvent, SubmitEventHandler } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
     Dialog,
     DialogContent,
@@ -13,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import type { EventUpsertRequest } from '@/types/event';
 
@@ -21,14 +25,136 @@ type Props = {
     setOpen: (open: boolean) => void;
 };
 
+function normalizeTime(value: string): string {
+    if (value === '') {
+        return '';
+    }
+
+    if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
+        return value;
+    }
+
+    if (/^\d{2}:\d{2}$/.test(value)) {
+        return `${value}:00`;
+    }
+
+    return value;
+}
+
+function splitDateTime(value: string): { date: string; time: string } {
+    if (!value) {
+        return { date: '', time: '' };
+    }
+
+    const [date = '', time = ''] = value.split('T');
+
+    return { date, time: normalizeTime(time) };
+}
+
+function DateTimeInput({
+    id,
+    label,
+    value,
+    onChange,
+    error,
+}: {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (next: string) => void;
+    error?: string;
+}) {
+    const parts = useMemo(() => splitDateTime(value), [value]);
+    const date = parts.date;
+    const time = parts.time || '10:30:00';
+    const [open, setOpen] = useState(false);
+
+    const commit = (nextDate: string, nextTime: string) => {
+        const normalizedTime = normalizeTime(nextTime);
+
+        if (!nextDate) {
+            onChange('');
+
+            return;
+        }
+
+        if (!normalizedTime) {
+            onChange(`${nextDate}T00:00:00`);
+
+            return;
+        }
+
+        onChange(`${nextDate}T${normalizedTime}`);
+    };
+
+    const selectedDate = date ? new Date(`${date}T00:00:00`) : undefined;
+
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={`${id}_date`}>{label}</Label>
+            <div className="flex gap-2">
+                <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            id={`${id}_date`}
+                            variant="outline"
+                            type="button"
+                            className="w-60 justify-between font-normal"
+                        >
+                            {selectedDate
+                                ? format(selectedDate, 'PPP')
+                                : 'Select date'}
+                            <ChevronDownIcon className="ml-2 size-4 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            captionLayout="dropdown"
+                            defaultMonth={selectedDate}
+                            onSelect={(next) => {
+                                if (!next) {
+                                    onChange('');
+
+                                    return;
+                                }
+
+                                commit(format(next, 'yyyy-MM-dd'), time);
+                                setOpen(false);
+                            }}
+                        />
+                    </PopoverContent>
+                </Popover>
+                <Input
+                    id={`${id}_time`}
+                    type="time"
+                    step="1"
+                    value={time}
+                    onChange={(e) => {
+                        const nextTime = e.target.value;
+
+                        if (!date) {
+                            return;
+                        }
+
+                        commit(date, nextTime);
+                    }}
+                    className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+            </div>
+            <InputError message={error} />
+        </div>
+    );
+}
+
 export default function EventCreateDialog({ open, setOpen }: Props) {
     const { data, setData, post, reset, processing, errors } =
         useForm<EventUpsertRequest>({
-            title: '',
-            location: '',
             description: '',
             start_at: '',
             end_at: '',
+            name: '',
         });
 
     const handleChange = (
@@ -62,48 +188,31 @@ export default function EventCreateDialog({ open, setOpen }: Props) {
                 <form onSubmit={submit}>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Title</Label>
+                            <Label htmlFor="name">Name</Label>
                             <Input
-                                id="title"
-                                placeholder="Event title"
-                                value={data.title}
+                                id="name"
+                                placeholder="Event name"
+                                value={data.name}
                                 onChange={handleChange}
                             />
-                            <InputError message={errors.title} />
+                            <InputError message={errors.name} />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="location">Location</Label>
-                            <Input
-                                id="location"
-                                placeholder="Event location"
-                                value={data.location || ''}
-                                onChange={handleChange}
-                            />
-                            <InputError message={errors.location} />
-                        </div>
+                        <DateTimeInput
+                            id="start_at"
+                            label="Start"
+                            value={data.start_at}
+                            onChange={(next) => setData('start_at', next)}
+                            error={errors.start_at}
+                        />
 
-                        <div className="space-y-2">
-                            <Label htmlFor="start_at">Start</Label>
-                            <Input
-                                id="start_at"
-                                type="datetime-local"
-                                value={data.start_at}
-                                onChange={handleChange}
-                            />
-                            <InputError message={errors.start_at} />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="end_at">End</Label>
-                            <Input
-                                id="end_at"
-                                type="datetime-local"
-                                value={data.end_at || ''}
-                                onChange={handleChange}
-                            />
-                            <InputError message={errors.end_at} />
-                        </div>
+                        <DateTimeInput
+                            id="end_at"
+                            label="End"
+                            value={data.end_at || ''}
+                            onChange={(next) => setData('end_at', next)}
+                            error={errors.end_at}
+                        />
 
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>

@@ -6,7 +6,7 @@ export interface Event {
     end_at: string;
 }
 
-export interface EventCreateRequest {
+export interface EventUpsertRequest {
     name: string;
     description?: string;
     start_at: string;

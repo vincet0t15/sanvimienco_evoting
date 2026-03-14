@@ -32,10 +32,6 @@ class ProfileController extends Controller
     {
         $request->user()->fill($request->validated());
 
-        if ($request->user()->isDirty('username')) {
-            $request->user()->email = $request->user()->username.'@local.test';
-        }
-
         $request->user()->save();
 
         return to_route('profile.edit');

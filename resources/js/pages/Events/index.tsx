@@ -19,8 +19,8 @@ import type { Event } from '@/types/event';
 import type { FilterProps } from '@/types/filter';
 import type { PaginatedDataResponse } from '@/types/pagination';
 import EventCreateDialog from './create';
-import EventEditDialog from './edit';
 import EventDeleteDialog from './delete';
+import EventEditDialog from './edit';
 
 
 const breadcrumbs: BreadcrumbItem[] = [

@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { useMemo } from 'react';
 import type { ChangeEvent, SubmitEventHandler } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
@@ -22,14 +23,106 @@ type Props = {
     event: Event;
 };
 
+function normalizeTime(value: string): string {
+    if (value === '') {
+        return '';
+    }
+
+    if (/^\d{2}:\d{2}:\d{2}$/.test(value)) {
+        return value;
+    }
+
+    if (/^\d{2}:\d{2}$/.test(value)) {
+        return `${value}:00`;
+    }
+
+    return value;
+}
+
+function splitDateTime(value: string): { date: string; time: string } {
+    if (!value) {
+        return { date: '', time: '' };
+    }
+
+    const [date = '', time = ''] = value.split('T');
+
+    return { date, time: normalizeTime(time) };
+}
+
+function DateTimeInput({
+    id,
+    label,
+    value,
+    onChange,
+    error,
+}: {
+    id: string;
+    label: string;
+    value: string;
+    onChange: (next: string) => void;
+    error?: string;
+}) {
+    const parts = useMemo(() => splitDateTime(value), [value]);
+    const date = parts.date;
+    const time = parts.time || '10:30:00';
+
+    const commit = (nextDate: string, nextTime: string) => {
+        const normalizedTime = normalizeTime(nextTime);
+
+        if (!nextDate) {
+            onChange('');
+
+            return;
+        }
+
+        if (!normalizedTime) {
+            onChange(`${nextDate}T00:00:00`);
+
+            return;
+        }
+
+        onChange(`${nextDate}T${normalizedTime}`);
+    };
+
+    return (
+        <div className="space-y-2">
+            <Label htmlFor={`${id}_date`}>{label}</Label>
+            <div className="flex gap-2">
+                <Input
+                    id={`${id}_date`}
+                    type="date"
+                    value={date}
+                    onChange={(e) => {
+                        const nextDate = e.target.value;
+
+                        commit(nextDate, time);
+                    }}
+                />
+                <Input
+                    id={`${id}_time`}
+                    type="time"
+                    step="1"
+                    value={time}
+                    onChange={(e) => {
+                        const nextTime = e.target.value;
+
+                        commit(date, nextTime);
+                    }}
+                    className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+            </div>
+            <InputError message={error} />
+        </div>
+    );
+}
+
 export default function EventEditDialog({ open, setOpen, event }: Props) {
     const { data, setData, put, reset, processing, errors } =
         useForm<EventUpsertRequest>({
-            title: event.title,
-            location: event.location || '',
+            name: event.name,
             description: event.description || '',
-            start_at: event.start_at || '',
-            end_at: event.end_at || '',
+            start_at: event.start_at,
+            end_at: event.end_at,
         });
 
     const handleChange = (
@@ -63,48 +156,31 @@ export default function EventEditDialog({ open, setOpen, event }: Props) {
                 <form onSubmit={submit}>
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Title</Label>
+                            <Label htmlFor="name">Name</Label>
                             <Input
-                                id="title"
-                                placeholder="Event title"
-                                value={data.title}
+                                id="name"
+                                placeholder="Event name"
+                                value={data.name}
                                 onChange={handleChange}
                             />
-                            <InputError message={errors.title} />
+                            <InputError message={errors.name} />
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="location">Location</Label>
-                            <Input
-                                id="location"
-                                placeholder="Event location"
-                                value={data.location || ''}
-                                onChange={handleChange}
-                            />
-                            <InputError message={errors.location} />
-                        </div>
+                        <DateTimeInput
+                            id="start_at"
+                            label="Start"
+                            value={data.start_at}
+                            onChange={(next) => setData('start_at', next)}
+                            error={errors.start_at}
+                        />
 
-                        <div className="space-y-2">
-                            <Label htmlFor="start_at">Start</Label>
-                            <Input
-                                id="start_at"
-                                type="datetime-local"
-                                value={data.start_at}
-                                onChange={handleChange}
-                            />
-                            <InputError message={errors.start_at} />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="end_at">End</Label>
-                            <Input
-                                id="end_at"
-                                type="datetime-local"
-                                value={data.end_at || ''}
-                                onChange={handleChange}
-                            />
-                            <InputError message={errors.end_at} />
-                        </div>
+                        <DateTimeInput
+                            id="end_at"
+                            label="End"
+                            value={data.end_at || ''}
+                            onChange={(next) => setData('end_at', next)}
+                            error={errors.end_at}
+                        />
 
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>

@@ -13,8 +13,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavGroup } from '@/types';
 import events from '@/routes/events';
+import type { NavGroup } from '@/types';
 
 const mainNavItems: NavGroup[] = [
     {

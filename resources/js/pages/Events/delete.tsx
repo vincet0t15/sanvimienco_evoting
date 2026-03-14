@@ -22,7 +22,7 @@ type Props = {
 
 export default function EventDeleteDialog({ open, setOpen, event }: Props) {
     const [confirmText, setConfirmText] = useState('');
-    const requiredText = `${event.title}`;
+    const requiredText = `${event.name}`;
 
     const deleteEvent = () => {
         router.delete(`/events/${event.id}`, {
