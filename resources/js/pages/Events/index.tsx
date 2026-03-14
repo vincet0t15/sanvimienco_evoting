@@ -21,6 +21,7 @@ import type { PaginatedDataResponse } from '@/types/pagination';
 import EventCreateDialog from './create';
 import EventDeleteDialog from './delete';
 import EventEditDialog from './edit';
+import VoterImportDialog from './import-voters';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -43,6 +44,7 @@ export default function EventsIndex({ eventList, filters }: Props) {
     const [openCreate, setOpenCreate] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
     const [openDelete, setOpenDelete] = useState(false);
+    const [openImportVoters, setOpenImportVoters] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const { data, setData } = useForm({
         search: filters.search || '',
@@ -72,6 +74,11 @@ export default function EventsIndex({ eventList, filters }: Props) {
     const handleDeleteClick = (event: Event) => {
         setSelectedEvent(event);
         setOpenDelete(true);
+    };
+
+    const handleImportVotersClick = (event: Event) => {
+        setSelectedEvent(event);
+        setOpenImportVoters(true);
     };
 
     return (
@@ -146,6 +153,16 @@ export default function EventsIndex({ eventList, filters }: Props) {
                                             </span>
                                             <span
                                                 onClick={() =>
+                                                    handleImportVotersClick(
+                                                        event,
+                                                    )
+                                                }
+                                                className="cursor-pointer text-blue-500 hover:text-blue-700 hover:underline"
+                                            >
+                                                Import voters
+                                            </span>
+                                            <span
+                                                onClick={() =>
                                                     handleDeleteClick(event)
                                                 }
                                                 className="cursor-pointer text-red-500 hover:text-orange-700 hover:underline"
@@ -186,6 +203,13 @@ export default function EventsIndex({ eventList, filters }: Props) {
                 <EventDeleteDialog
                     open={openDelete}
                     setOpen={setOpenDelete}
+                    event={selectedEvent}
+                />
+            )}
+            {openImportVoters && selectedEvent && (
+                <VoterImportDialog
+                    open={openImportVoters}
+                    setOpen={setOpenImportVoters}
                     event={selectedEvent}
                 />
             )}

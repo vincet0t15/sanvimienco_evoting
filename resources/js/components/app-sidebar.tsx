@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import events from '@/routes/events';
+import voters from '@/routes/voters';
 import type { NavGroup } from '@/types';
 
 const mainNavItems: NavGroup[] = [
@@ -33,6 +34,11 @@ const mainNavItems: NavGroup[] = [
             {
                 title: 'Events',
                 href: events.index.url(),
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Voters',
+                href: voters.index.url(),
                 icon: LayoutGrid,
             },
         ],
