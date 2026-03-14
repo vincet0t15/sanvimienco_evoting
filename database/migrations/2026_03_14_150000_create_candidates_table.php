@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
             $table->foreignId('position_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('photo_path');
+            $table->string('photo_path')->nullable();
             $table->timestamps();
 
             $table->unique(['position_id', 'name']);

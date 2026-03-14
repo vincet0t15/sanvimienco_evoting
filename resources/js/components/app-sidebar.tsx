@@ -13,6 +13,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import candidates from '@/routes/candidates';
 import events from '@/routes/events';
 import positions from '@/routes/positions';
 import voters from '@/routes/voters';
@@ -40,6 +41,11 @@ const mainNavItems: NavGroup[] = [
             {
                 title: 'Positions',
                 href: positions.index.url(),
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Candidates',
+                href: candidates.index.url(),
                 icon: LayoutGrid,
             },
             {

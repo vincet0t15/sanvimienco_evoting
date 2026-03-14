@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\VoterController;
@@ -28,6 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('positions/{position}', [PositionController::class, 'update'])->name('positions.update');
     Route::delete('positions/{position}', [PositionController::class, 'destroy'])->name('positions.destroy');
     Route::post('positions/reorder', [PositionController::class, 'reorder'])->name('positions.reorder');
+
+    // Candidates
+    Route::get('candidates', [CandidateController::class, 'index'])->name('candidates.index');
+    Route::post('candidates', [CandidateController::class, 'store'])->name('candidates.store');
+    Route::put('candidates/{candidate}', [CandidateController::class, 'update'])->name('candidates.update');
+    Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy'])->name('candidates.destroy');
 
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');

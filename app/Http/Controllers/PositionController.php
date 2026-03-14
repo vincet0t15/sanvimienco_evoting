@@ -60,7 +60,7 @@ class PositionController extends Controller
             'sort_order' => $nextOrder,
         ]);
 
-        return redirect()->back('positions.index', [
+        return redirect()->route('positions.index', [
             'event_id' => $validated['event_id'],
         ]);
     }

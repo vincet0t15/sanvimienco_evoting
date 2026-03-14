@@ -26,4 +26,3 @@ class Candidate extends Model
         return $this->belongsTo(Position::class);
     }
 }
-

@@ -1,0 +1,144 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Candidate;
+use App\Models\Event;
+use App\Models\Position;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+
+class CandidateController extends Controller
+{
+    public function index(Request $request)
+    {
+        $events = Event::query()
+            ->select(['id', 'name'])
+            ->orderByDesc('id')
+            ->get();
+
+        $eventId = (int) $request->input('event_id', $events->first()?->id);
+
+        $positions = Position::query()
+            ->select(['id', 'event_id', 'name'])
+            ->where('event_id', $eventId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $positionsByEvent = Position::query()
+            ->select(['id', 'event_id', 'name'])
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('event_id')
+            ->map(function ($group) {
+                return $group->map(function (Position $position) {
+                    return [
+                        'id' => $position->id,
+                        'name' => $position->name,
+                    ];
+                })->values();
+            });
+
+        $positionId = (int) $request->input('position_id', $positions->first()?->id);
+
+        $candidateList = Candidate::query()
+            ->where('event_id', $eventId)
+            ->when($positionId, fn ($q) => $q->where('position_id', $positionId))
+            ->orderBy('id')
+            ->get()
+            ->map(function (Candidate $candidate) {
+                return [
+                    'id' => $candidate->id,
+                    'event_id' => $candidate->event_id,
+                    'position_id' => $candidate->position_id,
+                    'name' => $candidate->name,
+                    'photo_path' => $candidate->photo_path,
+                    'photo_url' => asset('storage/'.$candidate->photo_path),
+                ];
+            });
+
+        return Inertia::render('Candidates/index', [
+            'events' => $events,
+            'eventId' => $eventId,
+            'positions' => $positions,
+            'positionsByEvent' => $positionsByEvent,
+            'positionId' => $positionId,
+            'candidateList' => $candidateList,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $eventId = (int) $request->input('event_id');
+
+        $validated = $request->validate([
+            'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
+            'position_id' => ['required', 'integer', Rule::exists('positions', 'id')->where('event_id', $eventId)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('candidates', 'name')->where('position_id', $request->input('position_id'))],
+            'photo' => ['required', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+        ]);
+
+        $path = $request->file('photo')->store('candidates', 'public');
+
+        Candidate::create([
+            'event_id' => $validated['event_id'],
+            'position_id' => $validated['position_id'],
+            'name' => $validated['name'],
+            'photo_path' => $path,
+        ]);
+
+        return redirect()->route('candidates.index', [
+            'event_id' => $validated['event_id'],
+            'position_id' => $validated['position_id'],
+        ]);
+    }
+
+    public function update(Request $request, Candidate $candidate): RedirectResponse
+    {
+        $validated = $request->validate([
+            'position_id' => ['required', 'integer', Rule::exists('positions', 'id')->where('event_id', $candidate->event_id)],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('candidates', 'name')
+                    ->where('position_id', $request->input('position_id'))
+                    ->ignore($candidate->id),
+            ],
+            'photo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+        ]);
+
+        if ($request->hasFile('photo')) {
+            Storage::disk('public')->delete($candidate->photo_path);
+            $candidate->photo_path = $request->file('photo')->store('candidates', 'public');
+        }
+
+        $candidate->position_id = $validated['position_id'];
+        $candidate->name = $validated['name'];
+        $candidate->save();
+
+        return redirect()->route('candidates.index', [
+            'event_id' => $candidate->event_id,
+            'position_id' => $candidate->position_id,
+        ]);
+    }
+
+    public function destroy(Candidate $candidate): RedirectResponse
+    {
+        $eventId = $candidate->event_id;
+        $positionId = $candidate->position_id;
+
+        Storage::disk('public')->delete($candidate->photo_path);
+        $candidate->delete();
+
+        return redirect()->route('candidates.index', [
+            'event_id' => $eventId,
+            'position_id' => $positionId,
+        ]);
+    }
+}
