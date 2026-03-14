@@ -42,7 +42,7 @@ class VotersImport implements SkipsEmptyRows, ToModel, WithHeadingRow, WithValid
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('voters', 'username')->where('event_id', $this->eventId),
+                Rule::unique('voters', 'username'),
             ],
             '*.password' => ['required', 'string', 'min:6'],
             '*.is_active' => ['nullable'],

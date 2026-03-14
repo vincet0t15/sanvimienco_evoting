@@ -7,30 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import AuthLayout from '@/layouts/auth-layout';
-import type { Event } from '@/types/event';
-
-type Props = {
-    events: Pick<Event, 'id' | 'name'>[];
-};
 
 type VoterLoginForm = {
-    event_id: string;
     username: string;
     password: string;
     remember: boolean;
 };
 
-export default function VoterLogin({ events }: Props) {
+export default function VoterLogin() {
     const { data, setData, post, processing, errors } = useForm<VoterLoginForm>({
-        event_id: events[0] ? String(events[0].id) : '',
         username: '',
         password: '',
         remember: false,
@@ -57,37 +43,12 @@ export default function VoterLogin({ events }: Props) {
     return (
         <AuthLayout
             title="Voter login"
-            description="Select your event and login with your voter credentials"
+            description="Login with your voter credentials"
         >
             <Head title="Voter login" />
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="event_id">Event</Label>
-                        <Select
-                            value={data.event_id}
-                            onValueChange={(value) =>
-                                setData('event_id', value)
-                            }
-                        >
-                            <SelectTrigger id="event_id" className="w-full">
-                                <SelectValue placeholder="Select event" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {events.map((event) => (
-                                    <SelectItem
-                                        key={event.id}
-                                        value={String(event.id)}
-                                    >
-                                        {event.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <InputError message={errors.event_id} />
-                    </div>
-
                     <div className="grid gap-2">
                         <Label htmlFor="username">Username</Label>
                         <Input
@@ -131,7 +92,7 @@ export default function VoterLogin({ events }: Props) {
                     <Button
                         type="submit"
                         className="mt-4 w-full"
-                        disabled={processing || !data.event_id}
+                        disabled={processing}
                     >
                         {processing ? (
                             <span className="flex items-center gap-2">
@@ -147,4 +108,3 @@ export default function VoterLogin({ events }: Props) {
         </AuthLayout>
     );
 }
-

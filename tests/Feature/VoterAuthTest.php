@@ -41,7 +41,6 @@ class VoterAuthTest extends TestCase
         ]);
 
         $response = $this->post('/voter/login', [
-            'event_id' => $event->id,
             'username' => $voter->username,
             'password' => 'secret123',
         ]);
@@ -69,7 +68,6 @@ class VoterAuthTest extends TestCase
         ]);
 
         $response = $this->from('/voter/login')->post('/voter/login', [
-            'event_id' => $event->id,
             'username' => 'voter1',
             'password' => 'secret123',
         ]);

@@ -44,8 +44,6 @@ class VoterController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $eventId = (int) $request->input('event_id');
-
         $validated = $request->validate([
             'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
             'name' => ['required', 'string', 'max:255'],
@@ -53,7 +51,7 @@ class VoterController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('voters', 'username')->where('event_id', $eventId),
+                Rule::unique('voters', 'username'),
             ],
             'password' => ['required', 'string', 'min:6'],
             'is_active' => ['nullable', 'boolean'],
