@@ -58,7 +58,9 @@ class CandidateController extends Controller
                     'position_id' => $candidate->position_id,
                     'name' => $candidate->name,
                     'photo_path' => $candidate->photo_path,
-                    'photo_url' => asset('storage/'.$candidate->photo_path),
+                    'photo_url' => $candidate->photo_path
+                        ? asset('storage/'.$candidate->photo_path)
+                        : null,
                 ];
             });
 
@@ -80,10 +82,12 @@ class CandidateController extends Controller
             'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
             'position_id' => ['required', 'integer', Rule::exists('positions', 'id')->where('event_id', $eventId)],
             'name' => ['required', 'string', 'max:255', Rule::unique('candidates', 'name')->where('position_id', $request->input('position_id'))],
-            'photo' => ['required', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+            'photo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
         ]);
 
-        $path = $request->file('photo')->store('candidates', 'public');
+        $path = $request->hasFile('photo')
+            ? $request->file('photo')->store('candidates', 'public')
+            : null;
 
         Candidate::create([
             'event_id' => $validated['event_id'],
@@ -114,7 +118,9 @@ class CandidateController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            Storage::disk('public')->delete($candidate->photo_path);
+            if ($candidate->photo_path) {
+                Storage::disk('public')->delete($candidate->photo_path);
+            }
             $candidate->photo_path = $request->file('photo')->store('candidates', 'public');
         }
 
@@ -133,7 +139,9 @@ class CandidateController extends Controller
         $eventId = $candidate->event_id;
         $positionId = $candidate->position_id;
 
-        Storage::disk('public')->delete($candidate->photo_path);
+        if ($candidate->photo_path) {
+            Storage::disk('public')->delete($candidate->photo_path);
+        }
         $candidate->delete();
 
         return redirect()->route('candidates.index', [

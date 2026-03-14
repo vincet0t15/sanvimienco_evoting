@@ -171,11 +171,17 @@ export default function CandidatesIndex({
                                     >
                                         <TableCell className="text-sm">
                                             <div className="h-10 w-10 overflow-hidden rounded-md border">
-                                                <img
-                                                    src={candidate.photo_url}
-                                                    alt={candidate.name}
-                                                    className="h-full w-full object-cover"
-                                                />
+                                                {candidate.photo_url ? (
+                                                    <img
+                                                        src={candidate.photo_url}
+                                                        alt={candidate.name}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+                                                        N/A
+                                                    </div>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-sm uppercase">
