@@ -46,7 +46,22 @@ function splitDateTime(value: string): { date: string; time: string } {
         return { date: '', time: '' };
     }
 
-    const [date = '', time = ''] = value.split('T');
+    const trimmed = value.trim();
+
+    let date = '';
+    let time = '';
+
+    if (trimmed.includes('T')) {
+        [date = '', time = ''] = trimmed.split('T');
+    } else if (trimmed.includes(' ')) {
+        [date = '', time = ''] = trimmed.split(' ');
+    } else {
+        date = trimmed;
+    }
+
+    time = time.replace(/Z$/, '');
+    time = time.replace(/([+-]\d{2}:?\d{2})$/, '');
+    time = time.replace(/\.\d+$/, '');
 
     return { date, time: normalizeTime(time) };
 }

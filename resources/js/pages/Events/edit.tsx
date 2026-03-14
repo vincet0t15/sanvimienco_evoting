@@ -1,10 +1,12 @@
 import { useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { useMemo } from 'react';
+import { format } from 'date-fns';
+import { ChevronDownIcon, LoaderCircle } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { ChangeEvent, SubmitEventHandler } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import {
     Dialog,
     DialogContent,
@@ -14,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import type { Event, EventUpsertRequest } from '@/types/event';
 
@@ -44,7 +47,22 @@ function splitDateTime(value: string): { date: string; time: string } {
         return { date: '', time: '' };
     }
 
-    const [date = '', time = ''] = value.split('T');
+    const trimmed = value.trim();
+
+    let date = '';
+    let time = '';
+
+    if (trimmed.includes('T')) {
+        [date = '', time = ''] = trimmed.split('T');
+    } else if (trimmed.includes(' ')) {
+        [date = '', time = ''] = trimmed.split(' ');
+    } else {
+        date = trimmed;
+    }
+
+    time = time.replace(/Z$/, '');
+    time = time.replace(/([+-]\d{2}:?\d{2})$/, '');
+    time = time.replace(/\.\d+$/, '');
 
     return { date, time: normalizeTime(time) };
 }
@@ -65,6 +83,7 @@ function DateTimeInput({
     const parts = useMemo(() => splitDateTime(value), [value]);
     const date = parts.date;
     const time = parts.time || '10:30:00';
+    const [open, setOpen] = useState(false);
 
     const commit = (nextDate: string, nextTime: string) => {
         const normalizedTime = normalizeTime(nextTime);
@@ -84,20 +103,45 @@ function DateTimeInput({
         onChange(`${nextDate}T${normalizedTime}`);
     };
 
+    const selectedDate = date ? new Date(`${date}T00:00:00`) : undefined;
+
     return (
         <div className="space-y-2">
             <Label htmlFor={`${id}_date`}>{label}</Label>
             <div className="flex gap-2">
-                <Input
-                    id={`${id}_date`}
-                    type="date"
-                    value={date}
-                    onChange={(e) => {
-                        const nextDate = e.target.value;
+                <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            id={`${id}_date`}
+                            variant="outline"
+                            type="button"
+                            className="w-60 justify-between font-normal"
+                        >
+                            {selectedDate
+                                ? format(selectedDate, 'PPP')
+                                : 'Select date'}
+                            <ChevronDownIcon className="ml-2 size-4 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            captionLayout="dropdown"
+                            defaultMonth={selectedDate}
+                            onSelect={(next) => {
+                                if (!next) {
+                                    onChange('');
 
-                        commit(nextDate, time);
-                    }}
-                />
+                                    return;
+                                }
+
+                                commit(format(next, 'yyyy-MM-dd'), time);
+                                setOpen(false);
+                            }}
+                        />
+                    </PopoverContent>
+                </Popover>
                 <Input
                     id={`${id}_time`}
                     type="time"
@@ -105,6 +149,10 @@ function DateTimeInput({
                     value={time}
                     onChange={(e) => {
                         const nextTime = e.target.value;
+
+                        if (!date) {
+                            return;
+                        }
 
                         commit(date, nextTime);
                     }}
