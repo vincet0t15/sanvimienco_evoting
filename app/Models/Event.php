@@ -15,4 +15,9 @@ class Event extends Model
         'start_at',
         'end_at',
     ];
+
+    public function voters()
+    {
+        return $this->hasMany(Voter::class);
+    }
 }
