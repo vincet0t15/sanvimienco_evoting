@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');
+    Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
 });
 
 require __DIR__.'/settings.php';

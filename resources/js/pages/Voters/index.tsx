@@ -18,6 +18,7 @@ import type { Event } from '@/types/event';
 import type { FilterProps } from '@/types/filter';
 import type { PaginatedDataResponse } from '@/types/pagination';
 import type { Voter } from '@/types/voter';
+import VoterCreateDialog from './create';
 import VoterImportDialog from './import-voters';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -38,6 +39,7 @@ type Props = {
 };
 
 export default function VotersIndex({ voterList, filters, events }: Props) {
+    const [openCreate, setOpenCreate] = useState(false);
     const [openImport, setOpenImport] = useState(false);
     const { data, setData } = useForm({
         search: filters.search || '',
@@ -64,14 +66,24 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
             <Head title="Voters" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="cursor-pointer"
-                        onClick={() => setOpenImport(true)}
-                    >
-                        Import voters
-                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => setOpenCreate(true)}
+                        >
+                            Add voter
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => setOpenImport(true)}
+                        >
+                            Import voters
+                        </Button>
+                    </div>
                     <div className="flex items-center gap-2">
                         <Input
                             onKeyDown={handleKeyDown}
@@ -142,6 +154,13 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                 <VoterImportDialog
                     open={openImport}
                     setOpen={setOpenImport}
+                    events={events}
+                />
+            )}
+            {openCreate && (
+                <VoterCreateDialog
+                    open={openCreate}
+                    setOpen={setOpenCreate}
                     events={events}
                 />
             )}

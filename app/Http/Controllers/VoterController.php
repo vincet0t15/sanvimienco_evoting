@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Voter;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class VoterController extends Controller
@@ -38,5 +40,29 @@ class VoterController extends Controller
                 'search' => $search,
             ],
         ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $eventId = (int) $request->input('event_id');
+
+        $validated = $request->validate([
+            'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('voters', 'username')->where('event_id', $eventId),
+            ],
+            'password' => ['required', 'string', 'min:6'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $validated['is_active'] = (bool) ($validated['is_active'] ?? true);
+
+        Voter::create($validated);
+
+        return redirect()->route('voters.index');
     }
 }
