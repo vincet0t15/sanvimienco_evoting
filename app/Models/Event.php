@@ -20,4 +20,14 @@ class Event extends Model
     {
         return $this->hasMany(Voter::class);
     }
+
+    public function positions()
+    {
+        return $this->hasMany(Position::class);
+    }
+
+    public function candidates()
+    {
+        return $this->hasMany(Candidate::class);
+    }
 }
