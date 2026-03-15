@@ -125,7 +125,7 @@ class VoterAuthTest extends TestCase
             'votes' => [
                 (string) $position->id => [$candidateA->id],
             ],
-        ])->assertStatus(302);
+        ])->assertRedirect('/voter/login');
 
         $this->assertDatabaseHas('votes', [
             'event_id' => $event->id,
@@ -133,11 +133,18 @@ class VoterAuthTest extends TestCase
             'candidate_id' => $candidateA->id,
         ]);
 
+        $this->get('/voter/dashboard')->assertRedirect('/voter/login');
+
         $this->assertDatabaseMissing('votes', [
             'event_id' => $event->id,
             'position_id' => $position->id,
             'candidate_id' => $candidateB->id,
         ]);
+
+        $this->post('/voter/login', [
+            'username' => 'voter1',
+            'password' => 'secret123',
+        ])->assertRedirect('/voter/dashboard');
 
         $this->post('/voter/vote', [
             'votes' => [

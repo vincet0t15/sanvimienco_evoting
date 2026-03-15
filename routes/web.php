@@ -48,11 +48,11 @@ Route::prefix('voter')->name('voter.')->group(function () {
         Route::post('login', [VoterAuthController::class, 'store'])->name('login.store');
     });
 
-    Route::middleware('auth:voter')->group(function () {
+    Route::middleware('auth.voter')->group(function () {
         Route::get('dashboard', [VoterAuthController::class, 'dashboard'])->name('dashboard');
         Route::post('vote', [VoterAuthController::class, 'vote'])->name('vote');
         Route::post('logout', [VoterAuthController::class, 'destroy'])->name('logout');
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

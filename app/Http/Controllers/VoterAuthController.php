@@ -203,6 +203,12 @@ class VoterAuthController extends Controller
             }
         });
 
-        return back();
+        Auth::guard('voter')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('voter.login')
+            ->with('success', 'Votes submitted successfully.');
     }
 }

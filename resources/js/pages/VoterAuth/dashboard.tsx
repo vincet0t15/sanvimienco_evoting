@@ -152,9 +152,8 @@ export default function VoterDashboard({
 
         router.post('/voter/vote', { votes }, {
             preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Votes submitted successfully!');
-                setIsConfirmOpen(false);
+            onSuccess: (response: { props: FlashProps }) => {
+                toast.success(response.props.flash?.success);
             },
             onError: (errs) => {
                 Object.values(errs).forEach((error) => {

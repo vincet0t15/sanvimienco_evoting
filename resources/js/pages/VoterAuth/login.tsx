@@ -1,6 +1,7 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { ChangeEvent, FormEventHandler } from 'react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -16,11 +17,39 @@ type VoterLoginForm = {
 };
 
 export default function VoterLogin() {
+    const { flash } = usePage<{
+        flash?: {
+            success?: string | null;
+            error?: string | null;
+        };
+    }>().props;
+    const flashShownRef = useRef(false);
     const { data, setData, post, processing, errors } = useForm<VoterLoginForm>({
         username: '',
         password: '',
         remember: false,
     });
+
+    useEffect(() => {
+        if (flashShownRef.current) {
+            return;
+        }
+
+        const success = flash?.success ?? null;
+        const error = flash?.error ?? null;
+
+        if (success) {
+            flashShownRef.current = true;
+            toast.success(success);
+
+            return;
+        }
+
+        if (error) {
+            flashShownRef.current = true;
+            toast.error(error);
+        }
+    }, [flash?.error, flash?.success]);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -28,7 +57,6 @@ export default function VoterLogin() {
             preserveScroll: true,
             onError: () => {
                 const firstError = Object.values(errors)[0];
-
                 if (firstError) {
                     toast.error(firstError);
                 }
