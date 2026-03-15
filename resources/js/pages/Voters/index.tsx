@@ -1,8 +1,11 @@
 import { Head, router, useForm } from '@inertiajs/react';
+import { PlusIcon, SearchIcon, UploadIcon, XIcon } from 'lucide-react';
 import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Pagination from '@/components/paginationData';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
     Table,
@@ -45,15 +48,37 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
         search: filters.search || '',
     });
 
+    const activeCount = useMemo(() => {
+        return voterList.data.reduce(
+            (acc, voter) => acc + (voter.is_active ? 1 : 0),
+            0,
+        );
+    }, [voterList.data]);
+
+    const inactiveCount = useMemo(() => {
+        return voterList.data.length - activeCount;
+    }, [activeCount, voterList.data.length]);
+
+    const applySearch = () => {
+        const queryString = data.search ? { search: data.search } : undefined;
+
+        router.get('/voters', queryString, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
+    const clearSearch = () => {
+        setData('search', '');
+        router.get('/voters', undefined, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     const handleKeyDown: KeyboardEventHandler<HTMLInputElement> = (e) => {
         if (e.key === 'Enter') {
-            const queryString = data.search
-                ? { search: data.search }
-                : undefined;
-            router.get('/voters', queryString, {
-                preserveState: true,
-                preserveScroll: true,
-            });
+            applySearch();
         }
     };
 
@@ -65,33 +90,110 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Voters" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-1">
+                        <div className="text-xl font-semibold tracking-tight">
+                            Voters
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                            Manage voter accounts and access.
+                        </div>
+                    </div>
+
                     <div className="flex flex-col gap-2 sm:flex-row">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="cursor-pointer"
-                            onClick={() => setOpenCreate(true)}
-                        >
-                            Add voter
-                        </Button>
                         <Button
                             variant="outline"
                             size="sm"
                             className="cursor-pointer"
                             onClick={() => setOpenImport(true)}
                         >
-                            Import voters
+                            <UploadIcon className="size-4" />
+                            Import
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => setOpenCreate(true)}
+                        >
+                            <PlusIcon className="size-4" />
+                            Voter
                         </Button>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Input
-                            onKeyDown={handleKeyDown}
-                            onChange={handleSearchChange}
-                            placeholder="Search..."
-                            value={data.search}
-                        />
-                    </div>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">
+                                Total voters
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-semibold">
+                                {voterList.total}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">
+                                On this page
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex items-center gap-2">
+                            <div className="text-2xl font-semibold">
+                                {voterList.data.length}
+                            </div>
+                            <Badge
+                                variant="secondary"
+                                className="bg-green-500/10 text-green-700 dark:text-green-300"
+                            >
+                                {activeCount} active
+                            </Badge>
+                            <Badge
+                                variant="secondary"
+                                className="bg-red-500/10 text-red-700 dark:text-red-300"
+                            >
+                                {inactiveCount} inactive
+                            </Badge>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">
+                                Search
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex gap-2">
+                            <div className="relative w-full">
+                                <SearchIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                <Input
+                                    className="pl-9 pr-9"
+                                    onKeyDown={handleKeyDown}
+                                    onChange={handleSearchChange}
+                                    placeholder="Name or username..."
+                                    value={data.search}
+                                />
+                                {data.search ? (
+                                    <button
+                                        type="button"
+                                        onClick={clearSearch}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:bg-muted"
+                                    >
+                                        <XIcon className="size-4" />
+                                    </button>
+                                ) : null}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={applySearch}
+                            >
+                                Go
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <div className="w-full overflow-hidden rounded-sm border shadow-sm">
@@ -117,10 +219,21 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                 voterList.data.map((voter) => (
                                     <TableRow
                                         key={voter.id}
-                                        className="text-sm"
+                                        className="text-sm hover:bg-muted/30"
                                     >
                                         <TableCell className="text-sm">
-                                            {voter.event?.name ?? '-'}
+                                            {voter.event?.name ? (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="font-normal"
+                                                >
+                                                    {voter.event.name}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            )}
                                         </TableCell>
                                         <TableCell className="text-sm uppercase">
                                             {voter.name}
@@ -129,7 +242,21 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                             {voter.username}
                                         </TableCell>
                                         <TableCell className="text-sm">
-                                            {voter.is_active ? 'Yes' : 'No'}
+                                            {voter.is_active ? (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="bg-green-500/10 text-green-700 dark:text-green-300"
+                                                >
+                                                    Active
+                                                </Badge>
+                                            ) : (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="bg-red-500/10 text-red-700 dark:text-red-300"
+                                                >
+                                                    Inactive
+                                                </Badge>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ))
