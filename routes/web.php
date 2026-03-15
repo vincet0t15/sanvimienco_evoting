@@ -50,7 +50,9 @@ Route::prefix('voter')->name('voter.')->group(function () {
 
     Route::middleware('auth.voter')->group(function () {
         Route::get('dashboard', [VoterAuthController::class, 'dashboard'])->name('dashboard');
-        Route::post('vote', [VoterAuthController::class, 'vote'])->name('vote');
+        Route::post('vote', [VoterAuthController::class, 'vote'])
+            ->middleware('throttle:10,1')
+            ->name('vote');
         Route::post('logout', [VoterAuthController::class, 'destroy'])->name('logout');
     });
 });

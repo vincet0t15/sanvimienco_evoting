@@ -15,6 +15,7 @@ class Voter extends Authenticatable
         'username',
         'password',
         'is_active',
+        'has_voted',
     ];
 
     protected $hidden = [
@@ -25,6 +26,7 @@ class Voter extends Authenticatable
     {
         return [
             'is_active' => 'boolean',
+            'has_voted' => 'boolean',
             'password' => 'hashed',
         ];
     }

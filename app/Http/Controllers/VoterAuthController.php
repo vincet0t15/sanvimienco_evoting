@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class VoterAuthController extends Controller
@@ -36,6 +37,12 @@ class VoterAuthController extends Controller
         if (! $voter || ! Hash::check($validated['password'], (string) $voter->password)) {
             return back()->withErrors([
                 'username' => 'Invalid credentials.',
+            ]);
+        }
+
+        if ($voter->has_voted) {
+            return back()->withErrors([
+                'username' => 'You already voted.',
             ]);
         }
 
@@ -193,14 +200,32 @@ class VoterAuthController extends Controller
             }
         }
 
+        if (count($rows) === 0) {
+            return back()->withErrors([
+                'votes' => 'Please select at least one candidate.',
+            ]);
+        }
+
         DB::transaction(function () use ($voter, $rows) {
+            $lockedVoter = Voter::query()
+                ->whereKey($voter->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedVoter->has_voted) {
+                throw ValidationException::withMessages([
+                    'votes' => 'You already voted.',
+                ]);
+            }
+
             Vote::query()
                 ->where('voter_id', $voter->id)
                 ->delete();
 
-            if (count($rows) > 0) {
-                Vote::query()->insert($rows);
-            }
+            Vote::query()->insert($rows);
+
+            $lockedVoter->has_voted = true;
+            $lockedVoter->save();
         });
 
         Auth::guard('voter')->logout();

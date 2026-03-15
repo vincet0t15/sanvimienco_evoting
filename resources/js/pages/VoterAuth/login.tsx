@@ -57,6 +57,7 @@ export default function VoterLogin() {
             preserveScroll: true,
             onError: () => {
                 const firstError = Object.values(errors)[0];
+
                 if (firstError) {
                     toast.error(firstError);
                 }

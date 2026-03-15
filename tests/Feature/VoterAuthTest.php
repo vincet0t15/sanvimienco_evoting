@@ -123,9 +123,22 @@ class VoterAuthTest extends TestCase
 
         $this->post('/voter/vote', [
             'votes' => [
+                (string) $position->id => [$candidateA->id, $candidateB->id],
+            ],
+        ])->assertSessionHasErrors(['votes']);
+
+        $this->post('/voter/vote', [
+            'votes' => [
                 (string) $position->id => [$candidateA->id],
             ],
         ])->assertRedirect('/voter/login');
+
+        $this->get('/voter/dashboard')->assertRedirect('/voter/login');
+
+        $this->post('/voter/login', [
+            'username' => 'voter1',
+            'password' => 'secret123',
+        ])->assertSessionHasErrors(['username']);
 
         $this->assertDatabaseHas('votes', [
             'event_id' => $event->id,
@@ -133,24 +146,11 @@ class VoterAuthTest extends TestCase
             'candidate_id' => $candidateA->id,
         ]);
 
-        $this->get('/voter/dashboard')->assertRedirect('/voter/login');
-
         $this->assertDatabaseMissing('votes', [
             'event_id' => $event->id,
             'position_id' => $position->id,
             'candidate_id' => $candidateB->id,
         ]);
-
-        $this->post('/voter/login', [
-            'username' => 'voter1',
-            'password' => 'secret123',
-        ])->assertRedirect('/voter/dashboard');
-
-        $this->post('/voter/vote', [
-            'votes' => [
-                (string) $position->id => [$candidateA->id, $candidateB->id],
-            ],
-        ])->assertSessionHasErrors(['votes']);
 
         $this->assertSame(
             1,
