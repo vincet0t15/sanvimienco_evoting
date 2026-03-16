@@ -231,7 +231,7 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                                 <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
                                     {activeEvent
                                         ? 'In active event'
-                                        : 'In system'}
+                                        : 'No active event'}
                                 </p>
                             </CardContent>
                         </Card>
@@ -252,7 +252,7 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                                 <p className="text-xs text-purple-600/80 dark:text-purple-400/80">
                                     {activeEvent
                                         ? 'In active event'
-                                        : 'In system'}
+                                        : 'No active event'}
                                 </p>
                             </CardContent>
                         </Card>
@@ -273,7 +273,7 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                                 <p className="text-xs text-orange-600/80 dark:text-orange-400/80">
                                     {activeEvent
                                         ? 'In active event'
-                                        : 'In system'}
+                                        : 'No active event'}
                                 </p>
                             </CardContent>
                         </Card>

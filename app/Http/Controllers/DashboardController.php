@@ -22,15 +22,15 @@ class DashboardController extends Controller
 
         $totalVoters = $activeEvent
             ? Voter::query()->where('event_id', $activeEvent->id)->count()
-            : Voter::query()->count();
+            : 0;
 
         $totalCandidates = $activeEvent
             ? Candidate::query()->where('event_id', $activeEvent->id)->count()
-            : Candidate::query()->count();
+            : 0;
 
         $totalPositions = $activeEvent
             ? Position::query()->where('event_id', $activeEvent->id)->count()
-            : Position::query()->count();
+            : 0;
 
         $votesCast = 0;
         $turnoutPercentage = 0;
