@@ -96,18 +96,13 @@ export default function PrintCards({ voters, filters, event }: Props) {
                 {voters.map((voter) => (
                     <div
                         key={voter.id}
-                        className="page-break-inside-avoid relative flex h-[30mm] flex-col justify-between break-inside-avoid border-b border-r border-gray-300 p-3"
+                        className="page-break-inside-avoid relative flex h-[35mm] flex-col justify-between break-inside-avoid border-b border-r border-gray-300 p-3"
                     >
                         <div className="absolute right-0 top-0 p-1 opacity-20 print:opacity-10">
                             <Scissors size={10} />
                         </div>
 
                         <div className="mb-2 flex items-start gap-2">
-                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center pt-1">
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-emerald-600 text-white">
-                                    <AppLogoIcon className="h-4 w-4 fill-current" />
-                                </div>
-                            </div>
                             <div className="overflow-hidden pt-0.5 leading-none">
                                 <h3 className="mb-1 w-full truncate text-[10px] font-bold uppercase">
                                     {event?.name ?? name ?? 'Voting System'}
