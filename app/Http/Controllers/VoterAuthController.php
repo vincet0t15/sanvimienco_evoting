@@ -146,7 +146,9 @@ class VoterAuthController extends Controller
             ]);
         }
 
-        if (now()->lt($event->start_at) || now()->gt($event->end_at)) {
+        $now = now();
+
+        if ($now->lt($event->start_at) || $now->gt($event->end_at)) {
             return back()->withErrors([
                 'votes' => 'Voting is not open.',
             ]);
@@ -164,8 +166,10 @@ class VoterAuthController extends Controller
             ->get()
             ->keyBy('id');
 
+        $cleanVotes = [];
+        $allCandidateIds = [];
+
         $rows = [];
-        $now = now();
 
         foreach ($votes as $positionIdRaw => $candidateIdsRaw) {
             $positionId = (int) $positionIdRaw;
@@ -196,17 +200,36 @@ class VoterAuthController extends Controller
                 continue;
             }
 
-            $validCandidateIds = Candidate::query()
-                ->where('event_id', $voter->event_id)
-                ->where('position_id', $positionId)
-                ->whereIn('id', $candidateIds)
-                ->pluck('id')
-                ->all();
+            $cleanVotes[$positionId] = $candidateIds;
+            $allCandidateIds = array_merge($allCandidateIds, $candidateIds);
+        }
 
-            if (count($validCandidateIds) !== count($candidateIds)) {
-                return back()->withErrors([
-                    'votes' => 'Invalid candidate selection.',
-                ]);
+        $allCandidateIds = array_values(array_unique($allCandidateIds));
+
+        if (count($cleanVotes) === 0) {
+            return back()->withErrors([
+                'votes' => 'Please select at least one candidate.',
+            ]);
+        }
+
+        $validCandidatesByPosition = Candidate::query()
+            ->select(['id', 'position_id'])
+            ->where('event_id', $voter->event_id)
+            ->whereIn('id', $allCandidateIds)
+            ->get()
+            ->groupBy('position_id')
+            ->map(fn ($group) => $group->pluck('id')->flip())
+            ->all();
+
+        foreach ($cleanVotes as $positionId => $candidateIds) {
+            $validSet = $validCandidatesByPosition[$positionId] ?? [];
+
+            foreach ($candidateIds as $candidateId) {
+                if (! isset($validSet[$candidateId])) {
+                    return back()->withErrors([
+                        'votes' => 'Invalid candidate selection.',
+                    ]);
+                }
             }
 
             foreach ($candidateIds as $candidateId) {
@@ -221,21 +244,27 @@ class VoterAuthController extends Controller
             }
         }
 
-        if (count($rows) === 0) {
-            return back()->withErrors([
-                'votes' => 'Please select at least one candidate.',
-            ]);
-        }
-
-        DB::transaction(function () use ($voter, $rows) {
+        DB::transaction(function () use ($event, $now, $voter, $rows) {
             $lockedVoter = Voter::query()
                 ->whereKey($voter->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            if (! $lockedVoter->is_active) {
+                throw ValidationException::withMessages([
+                    'votes' => 'Voter account is inactive.',
+                ]);
+            }
+
             if ($lockedVoter->has_voted) {
                 throw ValidationException::withMessages([
                     'votes' => 'You already voted.',
+                ]);
+            }
+
+            if (! $event->is_active || $now->lt($event->start_at) || $now->gt($event->end_at)) {
+                throw ValidationException::withMessages([
+                    'votes' => 'Voting is not open.',
                 ]);
             }
 
