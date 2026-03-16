@@ -1,6 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import {
-    EyeIcon,
     PlusIcon,
     PrinterIcon,
     SearchIcon,
@@ -212,6 +211,19 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
         }
 
         router.delete(`/voters/${voterId}/votes`, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
+    const forceLogoutVoter = (voterId: number) => {
+        const ok = window.confirm('Force logout this voter?');
+
+        if (!ok) {
+            return;
+        }
+
+        router.post(`/voters/${voterId}/force-logout`, undefined, {
             preserveScroll: true,
             preserveState: true,
         });
@@ -477,9 +489,17 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             {voter.is_online ? (
-                                                <Badge className="border-none bg-emerald-600 text-white hover:bg-emerald-700">
-                                                    Online
-                                                </Badge>
+                                                <button
+                                                    type="button"
+                                                    className="cursor-pointer"
+                                                    onClick={() =>
+                                                        forceLogoutVoter(voter.id)
+                                                    }
+                                                >
+                                                    <Badge className="border-none bg-emerald-600 text-white hover:bg-emerald-700">
+                                                        Online
+                                                    </Badge>
+                                                </button>
                                             ) : (
                                                 <span className="text-muted-foreground">
                                                     —
@@ -505,18 +525,18 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             <div className="flex flex-col gap-2 sm:flex-row">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 cursor-pointer"
                                                     onClick={() =>
                                                         router.get(
                                                             `/voters/${voter.id}/votes`,
                                                         )
                                                     }
                                                 >
-                                                    <EyeIcon className="size-4" />
-                                                    Votes
-                                                </Button>
+                                                    View Votes
+                                                </Badge>
+
                                                 {voter.has_voted ? (
                                                     <Button
                                                         variant="destructive"

@@ -39,7 +39,9 @@ class VoterController extends Controller
             ->paginate(10)
             ->through(function (Voter $voter) use ($onlineCutoff) {
                 $lastSeen = $voter->last_seen_at;
-                $isOnline = $lastSeen ? $lastSeen->greaterThanOrEqualTo($onlineCutoff) : false;
+                $isOnline = $voter->current_session_token
+                    && $lastSeen
+                    && $lastSeen->greaterThanOrEqualTo($onlineCutoff);
 
                 return [
                     'id' => $voter->id,
@@ -133,6 +135,17 @@ class VoterController extends Controller
         }
 
         $voter->update(['is_active' => $validated['is_active']]);
+
+        return redirect()->back();
+    }
+
+    public function forceLogout(Voter $voter): RedirectResponse
+    {
+        if (! $voter->event()->active()->exists()) {
+            abort(Response::HTTP_NOT_FOUND);
+        }
+
+        $voter->forceFill(['current_session_token' => null])->save();
 
         return redirect()->back();
     }

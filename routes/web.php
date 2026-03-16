@@ -53,6 +53,7 @@ Route::middleware(['auth', 'active.user', 'verified'])->group(function () {
     Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
     Route::patch('voters/active', [VoterController::class, 'bulkActive'])->name('voters.bulk-active');
     Route::patch('voters/{voter}/active', [VoterController::class, 'setActive'])->name('voters.set-active');
+    Route::post('voters/{voter}/force-logout', [VoterController::class, 'forceLogout'])->name('voters.force-logout');
     Route::delete('voters/votes', [VoterController::class, 'bulkDestroyVotes'])->name('voters.votes.bulk-destroy');
     Route::get('voters/print', [VoterController::class, 'print'])->name('voters.print');
     Route::get('voters/{voter}/votes', [VoterController::class, 'votes'])->name('voters.votes');
@@ -74,4 +75,4 @@ Route::prefix('voter')->name('voter.')->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

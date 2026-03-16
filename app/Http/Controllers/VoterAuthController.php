@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -60,17 +61,29 @@ class VoterAuthController extends Controller
             ]);
         }
 
-        $voter->forceFill(['last_seen_at' => now()])->save();
-
         Auth::guard('voter')->login($voter, $request->boolean('remember'));
         $request->session()->regenerate();
+
+        $sessionToken = Str::random(40);
+        $request->session()->put('voter_session_token', $sessionToken);
+        $voter->forceFill([
+            'last_seen_at' => now(),
+            'current_session_token' => $sessionToken,
+        ])->save();
 
         return redirect()->route('voter.dashboard');
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $voter = $request->user('voter');
+
+        if ($voter) {
+            $voter->forceFill(['current_session_token' => null])->save();
+        }
+
         Auth::guard('voter')->logout();
+        $request->session()->forget('voter_session_token');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -285,10 +298,12 @@ class VoterAuthController extends Controller
             Vote::query()->insert($rows);
 
             $lockedVoter->has_voted = true;
+            $lockedVoter->current_session_token = null;
             $lockedVoter->save();
         });
 
         Auth::guard('voter')->logout();
+        $request->session()->forget('voter_session_token');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

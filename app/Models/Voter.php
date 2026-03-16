@@ -16,6 +16,8 @@ class Voter extends Authenticatable
         'password',
         'is_active',
         'has_voted',
+        'last_seen_at',
+        'current_session_token',
     ];
 
     protected $hidden = [
