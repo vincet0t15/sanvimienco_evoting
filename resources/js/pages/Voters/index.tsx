@@ -4,6 +4,7 @@ import {
     PlusIcon,
     PrinterIcon,
     SearchIcon,
+    Trash2Icon,
     UploadIcon,
     XIcon,
 } from 'lucide-react';
@@ -176,6 +177,46 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
         setSelectedIds(new Set());
     };
 
+    const deleteSelectedVotes = () => {
+        if (selectedOnPage.size === 0) {
+            return;
+        }
+
+        const ok = window.confirm('Delete votes for selected voters?');
+
+        if (!ok) {
+            return;
+        }
+
+        setBulkUpdating(true);
+        router.delete(
+            '/voters/votes',
+            {
+                data: {
+                    voter_ids: Array.from(selectedOnPage),
+                },
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setBulkUpdating(false),
+            },
+        );
+
+        setSelectedIds(new Set());
+    };
+
+    const deleteVoterVotes = (voterId: number) => {
+        const ok = window.confirm('Delete votes for this voter?');
+
+        if (!ok) {
+            return;
+        }
+
+        router.delete(`/voters/${voterId}/votes`, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Voters" />
@@ -263,6 +304,16 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                 onClick={() => setSelectedIds(new Set())}
                             >
                                 Clear
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="destructive"
+                                className="cursor-pointer"
+                                disabled={bulkUpdating}
+                                onClick={deleteSelectedVotes}
+                            >
+                                <Trash2Icon className="size-4" />
+                                Delete votes
                             </Button>
                         </div>
                     </div>
@@ -373,6 +424,9 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                     Username
                                 </TableHead>
                                 <TableHead className="font-bold text-primary">
+                                    Online
+                                </TableHead>
+                                <TableHead className="font-bold text-primary">
                                     Active
                                 </TableHead>
                                 <TableHead className="font-bold text-primary">
@@ -422,6 +476,17 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                             {voter.username}
                                         </TableCell>
                                         <TableCell className="text-sm">
+                                            {voter.is_online ? (
+                                                <Badge className="border-none bg-emerald-600 text-white hover:bg-emerald-700">
+                                                    Online
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    —
+                                                </span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-sm">
                                             {voter.is_active ? (
                                                 <Badge
                                                     variant="secondary"
@@ -439,25 +504,41 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                             )}
                                         </TableCell>
                                         <TableCell className="text-sm">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    router.get(
-                                                        `/voters/${voter.id}/votes`,
-                                                    )
-                                                }
-                                            >
-                                                <EyeIcon className="size-4" />
-                                                Votes
-                                            </Button>
+                                            <div className="flex flex-col gap-2 sm:flex-row">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        router.get(
+                                                            `/voters/${voter.id}/votes`,
+                                                        )
+                                                    }
+                                                >
+                                                    <EyeIcon className="size-4" />
+                                                    Votes
+                                                </Button>
+                                                {voter.has_voted ? (
+                                                    <Button
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            deleteVoterVotes(
+                                                                voter.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2Icon className="size-4" />
+                                                        Delete
+                                                    </Button>
+                                                ) : null}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={6}
+                                        colSpan={7}
                                         className="py-3 text-center text-gray-500"
                                     >
                                         No data available.

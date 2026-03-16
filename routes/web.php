@@ -48,8 +48,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
     Route::patch('voters/active', [VoterController::class, 'bulkActive'])->name('voters.bulk-active');
     Route::patch('voters/{voter}/active', [VoterController::class, 'setActive'])->name('voters.set-active');
+    Route::delete('voters/votes', [VoterController::class, 'bulkDestroyVotes'])->name('voters.votes.bulk-destroy');
     Route::get('voters/print', [VoterController::class, 'print'])->name('voters.print');
     Route::get('voters/{voter}/votes', [VoterController::class, 'votes'])->name('voters.votes');
+    Route::delete('voters/{voter}/votes', [VoterController::class, 'destroyVotes'])->name('voters.votes.destroy');
 });
 
 Route::prefix('voter')->name('voter.')->group(function () {
@@ -67,4 +69,4 @@ Route::prefix('voter')->name('voter.')->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

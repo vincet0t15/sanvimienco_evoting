@@ -60,6 +60,8 @@ class VoterAuthController extends Controller
             ]);
         }
 
+        $voter->forceFill(['last_seen_at' => now()])->save();
+
         Auth::guard('voter')->login($voter, $request->boolean('remember'));
         $request->session()->regenerate();
 

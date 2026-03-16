@@ -27,6 +27,7 @@ class Voter extends Authenticatable
         return [
             'is_active' => 'boolean',
             'has_voted' => 'boolean',
+            'last_seen_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

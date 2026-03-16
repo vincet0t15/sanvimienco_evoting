@@ -6,6 +6,8 @@ export interface Voter {
     name: string;
     username: string;
     is_active: boolean;
+    has_voted: boolean;
+    last_seen_at: string | null;
+    is_online: boolean;
     event?: Pick<Event, 'id' | 'name'>;
 }
-

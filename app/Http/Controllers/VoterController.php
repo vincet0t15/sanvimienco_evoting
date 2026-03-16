@@ -8,6 +8,7 @@ use App\Models\Voter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -16,6 +17,7 @@ class VoterController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $onlineCutoff = now()->subMinutes(2);
 
         $events = Event::query()
             ->active()
@@ -25,7 +27,7 @@ class VoterController extends Controller
 
         $voterList = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn ($q) => $q->active())
+            ->whereHas('event', fn($q) => $q->active())
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -35,6 +37,22 @@ class VoterController extends Controller
             })
             ->orderByDesc('id')
             ->paginate(10)
+            ->through(function (Voter $voter) use ($onlineCutoff) {
+                $lastSeen = $voter->last_seen_at;
+                $isOnline = $lastSeen ? $lastSeen->greaterThanOrEqualTo($onlineCutoff) : false;
+
+                return [
+                    'id' => $voter->id,
+                    'event_id' => $voter->event_id,
+                    'name' => $voter->name,
+                    'username' => $voter->username,
+                    'is_active' => (bool) $voter->is_active,
+                    'has_voted' => (bool) $voter->has_voted,
+                    'last_seen_at' => $lastSeen?->toIso8601String(),
+                    'is_online' => $isOnline,
+                    'event' => $voter->event ? ['id' => $voter->event->id, 'name' => $voter->event->name] : null,
+                ];
+            })
             ->withQueryString();
 
         return Inertia::render('Voters/index', [
@@ -87,10 +105,10 @@ class VoterController extends Controller
         $voterIds = $validated['voter_ids'] ?? null;
 
         Voter::query()
-            ->whereHas('event', fn ($q) => $q->active())
+            ->whereHas('event', fn($q) => $q->active())
             ->when(
                 is_array($voterIds) && count($voterIds) > 0,
-                fn ($query) => $query->whereIn('id', $voterIds),
+                fn($query) => $query->whereIn('id', $voterIds),
             )
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
@@ -119,6 +137,49 @@ class VoterController extends Controller
         return redirect()->back();
     }
 
+    public function destroyVotes(Voter $voter): RedirectResponse
+    {
+        if (! $voter->event()->active()->exists()) {
+            abort(Response::HTTP_NOT_FOUND);
+        }
+
+        DB::transaction(function () use ($voter) {
+            Vote::query()->where('voter_id', $voter->id)->delete();
+
+            $voter->forceFill(['has_voted' => false])->save();
+        });
+
+        return redirect()->back();
+    }
+
+    public function bulkDestroyVotes(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'voter_ids' => ['required', 'array', 'min:1'],
+            'voter_ids.*' => ['integer'],
+        ]);
+
+        $voterIds = $validated['voter_ids'];
+
+        DB::transaction(function () use ($voterIds) {
+            $validVoterIds = Voter::query()
+                ->whereIn('id', $voterIds)
+                ->whereHas('event', fn($q) => $q->active())
+                ->pluck('id')
+                ->all();
+
+            if (count($validVoterIds) === 0) {
+                return;
+            }
+
+            Vote::query()->whereIn('voter_id', $validVoterIds)->delete();
+
+            Voter::query()->whereIn('id', $validVoterIds)->update(['has_voted' => false]);
+        });
+
+        return redirect()->back();
+    }
+
     public function print(Request $request)
     {
         $search = $request->input('search');
@@ -126,18 +187,18 @@ class VoterController extends Controller
 
         $event = $eventId
             ? Event::query()
-                ->active()
-                ->select(['id', 'name'])
-                ->find($eventId)
+            ->active()
+            ->select(['id', 'name'])
+            ->find($eventId)
             : Event::query()
-                ->active()
-                ->select(['id', 'name'])
-                ->first();
+            ->active()
+            ->select(['id', 'name'])
+            ->first();
 
         $voters = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn ($q) => $q->active())
-            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
+            ->whereHas('event', fn($q) => $q->active())
+            ->when($eventId, fn($q) => $q->where('event_id', $eventId))
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
