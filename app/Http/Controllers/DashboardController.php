@@ -81,7 +81,7 @@ class DashboardController extends Controller
                     'created_at' => $vote->created_at?->toIso8601String(),
                 ];
 
-                if (count($recentActivity) >= 10) {
+                if (count($recentActivity) >= 7) {
                     break;
                 }
             }
