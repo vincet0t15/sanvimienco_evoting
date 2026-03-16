@@ -15,7 +15,7 @@ class VotersImport implements SkipsEmptyRows, ToModel, WithValidation
     {
         $this->takenUsernameSet = Voter::query()
             ->pluck('username')
-            ->map(fn ($username) => (string) $username)
+            ->map(fn($username) => (string) $username)
             ->flip()
             ->all();
     }
@@ -41,7 +41,7 @@ class VotersImport implements SkipsEmptyRows, ToModel, WithValidation
             'name' => $name,
             'username' => $username,
             'password' => $password,
-            'is_active' => $isActive,
+            'is_active' => false,
         ]);
     }
 
@@ -116,14 +116,14 @@ class VotersImport implements SkipsEmptyRows, ToModel, WithValidation
         $lettersOnly = preg_replace('/[^a-zA-Z]/', '', $normalized) ?? '';
         $lettersOnly = strtoupper($lettersOnly);
 
-        $letters = array_values(array_filter(str_split($lettersOnly), fn ($c) => $c !== ''));
+        $letters = array_values(array_filter(str_split($lettersOnly), fn($c) => $c !== ''));
 
         return $letters !== [] ? $letters : str_split('VOTER');
     }
 
     private function generateFixedLengthFromLetters(array $letters, int $length): string
     {
-        $letters = array_values(array_filter($letters, fn ($c) => $c !== ''));
+        $letters = array_values(array_filter($letters, fn($c) => $c !== ''));
 
         if (count($letters) === 0) {
             $letters = str_split('VOTER');
