@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import type { ChangeEvent, FormEventHandler } from 'react';
+import type { ChangeEvent, SubmitEventHandler } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -62,7 +62,7 @@ export default function CandidateCreateDialog({
         setData(e.target.id as keyof CandidateCreateForm, e.target.value);
     };
 
-    const submit: FormEventHandler = (e) => {
+    const submit: SubmitEventHandler = (e) => {
         e.preventDefault();
         post('/candidates', {
             forceFormData: true,
@@ -83,8 +83,8 @@ export default function CandidateCreateDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-md">
+        <Dialog open={open} onOpenChange={setOpen} >
+            <DialogContent className="min-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Add candidate</DialogTitle>
                     <DialogDescription>

@@ -15,6 +15,8 @@ class CandidateController extends Controller
 {
     public function index(Request $request)
     {
+        $search = $request->input('search');
+
         $events = Event::query()
             ->active()
             ->select(['id', 'name'])
@@ -28,7 +30,7 @@ class CandidateController extends Controller
 
         $positions = $eventId
             ? Position::query()
-                ->select(['id', 'event_id', 'name'])
+                ->select(['id', 'event_id', 'name', 'max_vote'])
                 ->where('event_id', $eventId)
                 ->orderBy('sort_order')
                 ->orderBy('id')
@@ -36,7 +38,7 @@ class CandidateController extends Controller
             : collect();
 
         $positionsByEvent = Position::query()
-            ->select(['id', 'event_id', 'name'])
+            ->select(['id', 'event_id', 'name', 'max_vote'])
             ->whereIn('event_id', $events->pluck('id'))
             ->orderBy('sort_order')
             ->orderBy('id')
@@ -47,19 +49,21 @@ class CandidateController extends Controller
                     return [
                         'id' => $position->id,
                         'name' => $position->name,
+                        'max_vote' => $position->max_vote,
                     ];
                 })->values();
             });
 
-        $positionId = (int) $request->input('position_id', $positions->first()?->id);
-        if ($positionId && ! $positions->contains('id', $positionId)) {
-            $positionId = (int) ($positions->first()?->id ?? 0);
+        $positionId = (int) $request->input('position_id', 0);
+        if ($positionId > 0 && ! $positions->contains('id', $positionId)) {
+            $positionId = 0;
         }
 
-        $candidateList = ($eventId && $positionId)
+        $candidateList = $eventId
             ? Candidate::query()
                 ->where('event_id', $eventId)
-                ->where('position_id', $positionId)
+                ->when($positionId > 0, fn ($q) => $q->where('position_id', $positionId))
+                ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
                 ->orderBy('id')
                 ->get()
                 ->map(function (Candidate $candidate) {
@@ -83,6 +87,9 @@ class CandidateController extends Controller
             'positionsByEvent' => $positionsByEvent,
             'positionId' => $positionId,
             'candidateList' => $candidateList,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
