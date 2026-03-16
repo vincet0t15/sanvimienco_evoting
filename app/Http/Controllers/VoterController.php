@@ -79,12 +79,19 @@ class VoterController extends Controller
         $validated = $request->validate([
             'is_active' => ['required', 'boolean'],
             'search' => ['nullable', 'string', 'max:255'],
+            'voter_ids' => ['nullable', 'array'],
+            'voter_ids.*' => ['integer'],
         ]);
 
         $search = $validated['search'] ?? null;
+        $voterIds = $validated['voter_ids'] ?? null;
 
         Voter::query()
             ->whereHas('event', fn ($q) => $q->active())
+            ->when(
+                is_array($voterIds) && count($voterIds) > 0,
+                fn ($query) => $query->whereIn('id', $voterIds),
+            )
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
