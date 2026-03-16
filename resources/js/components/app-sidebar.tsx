@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid } from 'lucide-react';
+import {
+    CalendarDays,
+    LayoutGrid,
+    ListOrdered,
+    Printer,
+    UserRound,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -21,7 +28,7 @@ import type { NavGroup } from '@/types';
 
 const mainNavItems: NavGroup[] = [
     {
-        title: 'General',
+        title: 'Overview',
         children: [
             {
                 title: 'Dashboard',
@@ -31,27 +38,37 @@ const mainNavItems: NavGroup[] = [
         ],
     },
     {
-        title: 'Settings',
+        title: 'Election',
         children: [
             {
                 title: 'Events',
                 href: events.index.url(),
-                icon: LayoutGrid,
+                icon: CalendarDays,
             },
             {
                 title: 'Positions',
                 href: positions.index.url(),
-                icon: LayoutGrid,
+                icon: ListOrdered,
             },
             {
                 title: 'Candidates',
                 href: candidates.index.url(),
-                icon: LayoutGrid,
+                icon: UserRound,
             },
+        ],
+    },
+    {
+        title: 'Voters',
+        children: [
             {
                 title: 'Voters',
                 href: voters.index.url(),
-                icon: LayoutGrid,
+                icon: Users,
+            },
+            {
+                title: 'Print slips',
+                href: voters.print.url(),
+                icon: Printer,
             },
         ],
     },

@@ -2,8 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { Scissors } from 'lucide-react';
 import type { ReactNode } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
-import events from '@/routes/events';
-import { Event } from '@/types/event';
+import type { Event } from '@/types/event';
 
 type VoterRow = {
     id: number;
@@ -16,7 +15,7 @@ type VoterRow = {
 };
 
 type Props = {
-    event: Event
+    event: Pick<Event, 'id' | 'name'> | null;
     voters: VoterRow[];
     filters: {
         search?: string | null;
@@ -25,7 +24,7 @@ type Props = {
 };
 
 export default function PrintCards({ voters, filters, event }: Props) {
-    console.log(event)
+    const { name } = usePage<{ name: string }>().props;
     const printSlips = () => window.print();
 
     const subtitleParts: ReactNode[] = [];
@@ -104,14 +103,18 @@ export default function PrintCards({ voters, filters, event }: Props) {
                         </div>
 
                         <div className="mb-2 flex items-start gap-2">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center pt-1">
+                                <div className="flex h-full w-full items-center justify-center rounded-full bg-emerald-600 text-white">
+                                    <AppLogoIcon className="h-4 w-4 fill-current" />
+                                </div>
+                            </div>
                             <div className="overflow-hidden pt-0.5 leading-none">
-                                <h3 className="w-full truncate text-[10px] font-bold uppercase mb-1">
-                                    {event.name || 'Voting System'}
+                                <h3 className="mb-1 w-full truncate text-[10px] font-bold uppercase">
+                                    {event?.name ?? name ?? 'Voting System'}
                                 </h3>
                                 <p className="text-[9px] font-medium uppercase text-gray-500">
                                     Voter Credential
                                 </p>
-
                             </div>
                         </div>
 

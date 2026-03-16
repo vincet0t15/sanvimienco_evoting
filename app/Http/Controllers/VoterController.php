@@ -23,7 +23,7 @@ class VoterController extends Controller
 
         $voterList = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn($q) => $q->active())
+            ->whereHas('event', fn ($q) => $q->active())
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -36,7 +36,7 @@ class VoterController extends Controller
             ->withQueryString();
 
         return Inertia::render('Voters/index', [
-            ' ' => $events,
+            'events' => $events,
             'voterList' => $voterList,
             'filters' => [
                 'search' => $search,
@@ -77,16 +77,20 @@ class VoterController extends Controller
         $search = $request->input('search');
         $eventId = $request->integer('event_id');
 
-        $event = Event::query()
-            ->select(['id', 'name'])
-            ->active()
-            ->first();
-
+        $event = $eventId
+            ? Event::query()
+                ->active()
+                ->select(['id', 'name'])
+                ->find($eventId)
+            : Event::query()
+                ->active()
+                ->select(['id', 'name'])
+                ->first();
 
         $voters = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn($q) => $q->active())
-            ->when($eventId, fn($q) => $q->where('event_id', $eventId))
+            ->whereHas('event', fn ($q) => $q->active())
+            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
