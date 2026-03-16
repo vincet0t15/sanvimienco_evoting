@@ -27,7 +27,7 @@ class VoterController extends Controller
 
         $voterList = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn($q) => $q->active())
+            ->whereHas('event', fn ($q) => $q->active())
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -105,10 +105,10 @@ class VoterController extends Controller
         $voterIds = $validated['voter_ids'] ?? null;
 
         Voter::query()
-            ->whereHas('event', fn($q) => $q->active())
+            ->whereHas('event', fn ($q) => $q->active())
             ->when(
                 is_array($voterIds) && count($voterIds) > 0,
-                fn($query) => $query->whereIn('id', $voterIds),
+                fn ($query) => $query->whereIn('id', $voterIds),
             )
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
@@ -164,7 +164,7 @@ class VoterController extends Controller
         DB::transaction(function () use ($voterIds) {
             $validVoterIds = Voter::query()
                 ->whereIn('id', $voterIds)
-                ->whereHas('event', fn($q) => $q->active())
+                ->whereHas('event', fn ($q) => $q->active())
                 ->pluck('id')
                 ->all();
 
@@ -187,18 +187,18 @@ class VoterController extends Controller
 
         $event = $eventId
             ? Event::query()
-            ->active()
-            ->select(['id', 'name'])
-            ->find($eventId)
+                ->active()
+                ->select(['id', 'name'])
+                ->find($eventId)
             : Event::query()
-            ->active()
-            ->select(['id', 'name'])
-            ->first();
+                ->active()
+                ->select(['id', 'name'])
+                ->first();
 
         $voters = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn($q) => $q->active())
-            ->when($eventId, fn($q) => $q->where('event_id', $eventId))
+            ->whereHas('event', fn ($q) => $q->active())
+            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
