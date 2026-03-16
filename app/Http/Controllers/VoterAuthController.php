@@ -125,7 +125,7 @@ class VoterAuthController extends Controller
                     'position_id' => $candidate->position_id,
                     'name' => $candidate->name,
                     'photo_url' => $candidate->photo_path
-                        ? asset('storage/'.$candidate->photo_path)
+                        ? asset('storage/' . $candidate->photo_path)
                         : null,
                 ];
             })
@@ -144,7 +144,7 @@ class VoterAuthController extends Controller
             ->where('voter_id', $voter->id)
             ->get(['position_id', 'candidate_id'])
             ->groupBy('position_id')
-            ->map(fn ($group) => $group->pluck('candidate_id')->values())
+            ->map(fn($group) => $group->pluck('candidate_id')->values())
             ->toArray();
 
         return Inertia::render('VoterAuth/dashboard', [
@@ -157,6 +157,7 @@ class VoterAuthController extends Controller
 
     public function vote(Request $request): RedirectResponse
     {
+
         $voter = $request->user('voter');
 
         $event = Event::query()
@@ -211,7 +212,7 @@ class VoterAuthController extends Controller
             }
 
             $candidateIds = array_values(array_unique(array_map('intval', $candidateIdsRaw)));
-            $candidateIds = array_values(array_filter($candidateIds, fn ($id) => $id > 0));
+            $candidateIds = array_values(array_filter($candidateIds, fn($id) => $id > 0));
 
             if (count($candidateIds) > (int) $position->max_vote) {
                 return back()->withErrors([
@@ -241,7 +242,7 @@ class VoterAuthController extends Controller
             ->whereIn('id', $allCandidateIds)
             ->get()
             ->groupBy('position_id')
-            ->map(fn ($group) => $group->pluck('id')->flip())
+            ->map(fn($group) => $group->pluck('id')->flip())
             ->all();
 
         foreach ($cleanVotes as $positionId => $candidateIds) {
@@ -265,6 +266,12 @@ class VoterAuthController extends Controller
                     'updated_at' => $now,
                 ];
             }
+        }
+
+        if (count($rows) === 0) {
+            return back()->withErrors([
+                'votes' => 'Please select at least one candidate.',
+            ]);
         }
 
         DB::transaction(function () use ($event, $now, $voter, $rows) {
@@ -296,6 +303,17 @@ class VoterAuthController extends Controller
                 ->delete();
 
             Vote::query()->insert($rows);
+
+            $writtenRows = Vote::query()
+                ->where('event_id', $voter->event_id)
+                ->where('voter_id', $voter->id)
+                ->count();
+
+            if ($writtenRows !== count($rows)) {
+                throw ValidationException::withMessages([
+                    'votes' => 'Votes were not saved. Please try again.',
+                ]);
+            }
 
             $lockedVoter->has_voted = true;
             $lockedVoter->current_session_token = null;

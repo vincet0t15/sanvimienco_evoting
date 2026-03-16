@@ -150,7 +150,11 @@ export default function VoterDashboard({
     const confirmSubmit = () => {
         setIsSubmitting(true);
 
-        router.post('/voter/vote', { votes }, {
+        const cleanedVotes = Object.fromEntries(
+            Object.entries(votes).filter(([, ids]) => (ids ?? []).length > 0),
+        );
+
+        router.post('/voter/vote', { votes: cleanedVotes }, {
             preserveScroll: true,
             onSuccess: (response: { props: FlashProps }) => {
                 toast.success(response.props.flash?.success);
