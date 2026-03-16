@@ -33,6 +33,7 @@ class DashboardController extends Controller
             : 0;
 
         $votesCast = 0;
+        $notVotedCount = 0;
         $turnoutPercentage = 0;
         $recentActivity = [];
 
@@ -41,6 +42,8 @@ class DashboardController extends Controller
                 ->where('event_id', $activeEvent->id)
                 ->distinct()
                 ->count('voter_id');
+
+            $notVotedCount = max(0, $totalVoters - $votesCast);
 
             $turnoutPercentage = $totalVoters > 0
                 ? round(($votesCast / $totalVoters) * 100, 2)
@@ -91,6 +94,7 @@ class DashboardController extends Controller
                 'total_positions' => $totalPositions,
                 'active_event' => $activeEvent,
                 'votes_cast' => $votesCast,
+                'not_voted' => $notVotedCount,
                 'turnout_percentage' => $turnoutPercentage,
             ],
             'recentActivity' => $recentActivity,

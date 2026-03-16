@@ -4,6 +4,7 @@ import {
     CalendarDays,
     LayoutGrid,
     ListOrdered,
+    PieChart,
     UserRound,
     Users,
     Vote,
@@ -61,6 +62,7 @@ type Props = {
         total_positions: number;
         active_event: ActiveEvent | null;
         votes_cast: number;
+        not_voted: number;
         turnout_percentage: number;
     };
     recentActivity: VoteActivityLog[];
@@ -90,6 +92,78 @@ function initials(name: string): string {
     const second = words.length > 1 ? words[1]?.[0] ?? '' : (words[0]?.[1] ?? '');
 
     return (first + second).toUpperCase();
+}
+
+function DonutChart({
+    total,
+    voted,
+    notVoted,
+}: {
+    total: number;
+    voted: number;
+    notVoted: number;
+}) {
+    const safeTotal = total > 0 ? total : 0;
+    const safeVoted = Math.max(0, Math.min(voted, safeTotal));
+    const safeNotVoted = Math.max(
+        0,
+        Math.min(notVoted, Math.max(0, safeTotal - safeVoted)),
+    );
+    const votedPercent = safeTotal > 0 ? (safeVoted / safeTotal) * 100 : 0;
+
+    return (
+        <div className="flex items-center gap-6">
+            <div
+                className="relative grid size-40 place-items-center rounded-full bg-muted"
+                style={{
+                    backgroundImage: `conic-gradient(hsl(var(--primary)) ${votedPercent}%, hsl(var(--muted-foreground) / 0.2) 0)`,
+                }}
+            >
+                <div className="grid size-28 place-items-center rounded-full bg-background shadow-sm">
+                    <div className="text-center">
+                        <div className="text-2xl font-bold tabular-nums">
+                            {Math.round(votedPercent)}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            turnout
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+                <div className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground">
+                        Total voters
+                    </div>
+                    <div className="text-lg font-semibold tabular-nums">
+                        {safeTotal}
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-8">
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
+                            Voted
+                        </div>
+                        <div className="text-sm font-semibold tabular-nums">
+                            {safeVoted}
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-8">
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className="inline-block h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                            Not voted
+                        </div>
+                        <div className="text-sm font-semibold tabular-nums">
+                            {safeNotVoted}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default function Dashboard({ stats, recentActivity }: Props) {
@@ -370,58 +444,85 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <LayoutGrid className="h-5 w-5 text-blue-600" />
-                                Quick Actions
-                            </CardTitle>
-                            <CardDescription>
-                                Common tasks and shortcuts
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <Link href={events.index.url()} className="block">
-                                <Button
-                                    variant="outline"
-                                    className={cn(
-                                        'w-full justify-start',
-                                        'cursor-pointer',
-                                    )}
-                                >
-                                    <CalendarDays className="mr-2 h-4 w-4" />
-                                    Manage Events
-                                </Button>
-                            </Link>
-                            <Link href={voters.index.url()} className="block">
-                                <Button
-                                    variant="outline"
-                                    className="w-full cursor-pointer justify-start"
-                                >
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Manage Voters
-                                </Button>
-                            </Link>
-                            <Link href={candidates.index.url()} className="block">
-                                <Button
-                                    variant="outline"
-                                    className="w-full cursor-pointer justify-start"
-                                >
-                                    <UserRound className="mr-2 h-4 w-4" />
-                                    Manage Candidates
-                                </Button>
-                            </Link>
-                            <Link href={positions.index.url()} className="block">
-                                <Button
-                                    variant="outline"
-                                    className="w-full cursor-pointer justify-start"
-                                >
-                                    <ListOrdered className="mr-2 h-4 w-4" />
-                                    Manage Positions
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
+                    <div className="space-y-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <LayoutGrid className="h-5 w-5 text-blue-600" />
+                                    Quick Actions
+                                </CardTitle>
+                                <CardDescription>
+                                    Common tasks and shortcuts
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <Link href={events.index.url()} className="block">
+                                    <Button
+                                        variant="outline"
+                                        className={cn(
+                                            'w-full justify-start',
+                                            'cursor-pointer',
+                                        )}
+                                    >
+                                        <CalendarDays className="mr-2 h-4 w-4" />
+                                        Manage Events
+                                    </Button>
+                                </Link>
+                                <Link href={voters.index.url()} className="block">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full cursor-pointer justify-start"
+                                    >
+                                        <Users className="mr-2 h-4 w-4" />
+                                        Manage Voters
+                                    </Button>
+                                </Link>
+                                <Link href={candidates.index.url()} className="block">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full cursor-pointer justify-start"
+                                    >
+                                        <UserRound className="mr-2 h-4 w-4" />
+                                        Manage Candidates
+                                    </Button>
+                                </Link>
+                                <Link href={positions.index.url()} className="block">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full cursor-pointer justify-start"
+                                    >
+                                        <ListOrdered className="mr-2 h-4 w-4" />
+                                        Manage Positions
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <PieChart className="h-5 w-5 text-emerald-600" />
+                                    Voting Breakdown
+                                </CardTitle>
+                                <CardDescription>
+                                    Votes cast vs voters who have not voted
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {activeEvent ? (
+                                    <DonutChart
+                                        total={stats.total_voters}
+                                        voted={stats.votes_cast}
+                                        notVoted={stats.not_voted}
+                                    />
+                                ) : (
+                                    <div className="py-6 text-center text-sm text-muted-foreground">
+                                        No active event.
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </AppLayout>
