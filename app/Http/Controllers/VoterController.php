@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use App\Models\Vote;
 use App\Models\Voter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -109,6 +110,55 @@ class VoterController extends Controller
                 'search' => $search,
                 'event_id' => $eventId ?: null,
             ],
+        ]);
+    }
+
+    public function votes(Voter $voter)
+    {
+        $voter->loadMissing(['event:id,name']);
+
+        $voteRows = Vote::query()
+            ->with(['position:id,name', 'candidate:id,name'])
+            ->where('voter_id', $voter->id)
+            ->orderBy('position_id')
+            ->orderBy('candidate_id')
+            ->get(['id', 'position_id', 'candidate_id', 'created_at']);
+
+        $positions = $voteRows
+            ->groupBy('position_id')
+            ->map(function ($group) {
+                $first = $group->first();
+                $position = $first?->position;
+
+                return [
+                    'position' => $position
+                        ? ['id' => $position->id, 'name' => $position->name]
+                        : ['id' => (int) ($first?->position_id ?? 0), 'name' => 'Unknown position'],
+                    'candidates' => $group
+                        ->map(function ($vote) {
+                            $candidate = $vote->candidate;
+
+                            return $candidate
+                                ? ['id' => $candidate->id, 'name' => $candidate->name]
+                                : ['id' => (int) $vote->candidate_id, 'name' => 'Unknown candidate'];
+                        })
+                        ->unique('id')
+                        ->values(),
+                ];
+            })
+            ->values();
+
+        return Inertia::render('Voters/votes', [
+            'voter' => [
+                'id' => $voter->id,
+                'name' => $voter->name,
+                'username' => $voter->username,
+                'event' => $voter->event ? ['id' => $voter->event->id, 'name' => $voter->event->name] : null,
+                'has_voted' => (bool) $voter->has_voted,
+            ],
+            'positions' => $positions,
+            'vote_count' => $voteRows->count(),
+            'voted_at' => $voteRows->max('created_at')?->toIso8601String(),
         ]);
     }
 }

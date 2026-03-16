@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { PlusIcon, PrinterIcon, SearchIcon, UploadIcon, XIcon } from 'lucide-react';
+import { EyeIcon, PlusIcon, PrinterIcon, SearchIcon, UploadIcon, XIcon } from 'lucide-react';
 import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
 import { useMemo, useState } from 'react';
 import Pagination from '@/components/paginationData';
@@ -229,6 +229,9 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                 <TableHead className="font-bold text-primary">
                                     Active
                                 </TableHead>
+                                <TableHead className="font-bold text-primary">
+                                    Action
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -275,12 +278,26 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                                 </Badge>
                                             )}
                                         </TableCell>
+                                        <TableCell className="text-sm">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    router.get(
+                                                        `/voters/${voter.id}/votes`,
+                                                    )
+                                                }
+                                            >
+                                                <EyeIcon className="size-4" />
+                                                Votes
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={4}
+                                        colSpan={5}
                                         className="py-3 text-center text-gray-500"
                                     >
                                         No data available.

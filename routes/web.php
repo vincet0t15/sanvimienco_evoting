@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');
     Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
+    Route::get('voters/{voter}/votes', [VoterController::class, 'votes'])->name('voters.votes');
     Route::get('voters/print', [VoterController::class, 'print'])->name('voters.print');
 });
 
