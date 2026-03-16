@@ -75,8 +75,8 @@ export default function VoterImportDialog({ open, setOpen, events }: Props) {
                 <DialogHeader>
                     <DialogTitle>Import voters</DialogTitle>
                     <DialogDescription>
-                        Upload an Excel/CSV file with columns: name, username,
-                        password, is_active (optional).
+                        Upload an Excel/CSV file with 1 column (Name). Username
+                        and Password will be auto-generated from the name.
                     </DialogDescription>
                 </DialogHeader>
 
