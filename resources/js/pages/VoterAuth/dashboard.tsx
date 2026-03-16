@@ -7,7 +7,7 @@ import {
     User,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { vote } from '@/routes/voter';
+
 
 type Candidate = {
     id: number;
@@ -103,7 +104,7 @@ export default function VoterDashboard({
 
         if (currentVotes.length >= maxVotes) {
             toast.error(`You can only select ${maxVotes} candidate(s) for this position.`);
-
+            console.log(maxVotes);
             return;
         }
 
@@ -159,7 +160,6 @@ export default function VoterDashboard({
             preserveScroll: true,
             onSuccess: (response: { props: FlashProps }) => {
                 toast.success(response.props.flash?.success);
-
             },
             onError: (errs) => {
                 Object.values(errs).forEach((error) => {
@@ -174,8 +174,10 @@ export default function VoterDashboard({
     };
 
     return (
+
         <div className="min-h-screen bg-slate-50 pb-24 text-slate-900">
             <Head title="Vote" />
+            <Toaster position="top-right" richColors />
 
             <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 shadow-sm backdrop-blur-md">
                 <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-4 px-4">
@@ -483,5 +485,6 @@ export default function VoterDashboard({
                 </DialogContent>
             </Dialog>
         </div>
+
     );
 }
