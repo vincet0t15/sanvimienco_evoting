@@ -4,6 +4,7 @@ import type { ChangeEvent, FormEventHandler } from 'react';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -95,9 +96,8 @@ export default function VoterLogin() {
 
                     <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
-                        <Input
+                        <PasswordInput
                             id="password"
-                            type="password"
                             required
                             autoComplete="current-password"
                             placeholder="Password"
