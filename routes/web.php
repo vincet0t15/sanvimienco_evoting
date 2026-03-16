@@ -4,6 +4,7 @@ use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\VoterAuthController;
 use App\Http\Controllers\VoterController;
 use App\Http\Controllers\VoterImportController;
@@ -38,6 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('candidates', [CandidateController::class, 'store'])->name('candidates.store');
     Route::put('candidates/{candidate}', [CandidateController::class, 'update'])->name('candidates.update');
     Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy'])->name('candidates.destroy');
+
+    // Results
+    Route::get('results', [ResultsController::class, 'index'])->name('results.index');
 
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');

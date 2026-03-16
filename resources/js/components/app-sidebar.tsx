@@ -4,6 +4,7 @@ import {
     LayoutGrid,
     ListOrdered,
     Printer,
+    Trophy,
     UserRound,
     Users,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ import { dashboard } from '@/routes';
 import candidates from '@/routes/candidates';
 import events from '@/routes/events';
 import positions from '@/routes/positions';
+import results from '@/routes/results';
 import voters from '@/routes/voters';
 import type { NavGroup } from '@/types';
 
@@ -44,6 +46,11 @@ const mainNavItems: NavGroup[] = [
                 title: 'Events',
                 href: events.index.url(),
                 icon: CalendarDays,
+            },
+            {
+                title: 'Results',
+                href: results.index.url(),
+                icon: Trophy,
             },
             {
                 title: 'Positions',

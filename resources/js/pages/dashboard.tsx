@@ -24,6 +24,7 @@ import { dashboard } from '@/routes';
 import candidates from '@/routes/candidates';
 import events from '@/routes/events';
 import positions from '@/routes/positions';
+import results from '@/routes/results';
 import voters from '@/routes/voters';
 import type { BreadcrumbItem } from '@/types';
 
@@ -135,6 +136,14 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                                         </CardDescription>
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        <Link href={results.index.url()}>
+                                            <Button
+                                                variant="outline"
+                                                className="shadow-md transition-all hover:scale-105"
+                                            >
+                                                View results
+                                            </Button>
+                                        </Link>
                                         <Link href={events.index.url()}>
                                             <Button className="bg-emerald-600 text-white shadow-md transition-all hover:scale-105 hover:bg-emerald-700">
                                                 Manage event
