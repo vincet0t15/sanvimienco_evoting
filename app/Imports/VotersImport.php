@@ -27,8 +27,7 @@ class VotersImport implements SkipsEmptyRows, ToModel, WithValidation
             return null;
         }
 
-        $usernameBase = $name;
-        $username = $this->uniqueUsername($usernameBase);
+        $username = $this->generateUniqueCredentialFromName($name);
         $password = $username;
 
         $isActiveRaw = $row['is_active'] ?? ($row[3] ?? true);
@@ -78,23 +77,70 @@ class VotersImport implements SkipsEmptyRows, ToModel, WithValidation
         return false;
     }
 
-    private function uniqueUsername(string $base): string
+    private function generateUniqueCredentialFromName(string $name): string
     {
-        $base = $this->normalizeName($base);
-        $base = $base !== '' ? $base : 'voter';
+        $letters = $this->extractLetters($name);
+        $length = 6;
 
-        $candidate = $base;
-        $suffix = 2;
+        for ($attempt = 0; $attempt < 50; $attempt++) {
+            $candidate = $this->generateFixedLengthFromLetters($letters, $length);
 
-        while (isset($this->takenUsernameSet[$candidate])) {
-            $maxBaseLength = 255 - (strlen((string) $suffix) + 1);
-            $trimmedBase = mb_substr($base, 0, max(1, $maxBaseLength));
-            $candidate = $trimmedBase.'-'.$suffix;
-            $suffix++;
+            if (! isset($this->takenUsernameSet[$candidate])) {
+                $this->takenUsernameSet[$candidate] = true;
+
+                return $candidate;
+            }
         }
 
+        $alphabet = str_split('ABCDEFGHJKLMNPQRSTUVWXYZ23456789');
+
+        for ($attempt = 0; $attempt < 200; $attempt++) {
+            $candidate = $this->generateFixedLengthFromLetters($alphabet, $length);
+
+            if (! isset($this->takenUsernameSet[$candidate])) {
+                $this->takenUsernameSet[$candidate] = true;
+
+                return $candidate;
+            }
+        }
+
+        $candidate = $this->generateFixedLengthFromLetters($alphabet, $length);
         $this->takenUsernameSet[$candidate] = true;
 
         return $candidate;
+    }
+
+    private function extractLetters(string $value): array
+    {
+        $normalized = $this->normalizeName($value);
+        $lettersOnly = preg_replace('/[^a-zA-Z]/', '', $normalized) ?? '';
+        $lettersOnly = strtoupper($lettersOnly);
+
+        $letters = array_values(array_filter(str_split($lettersOnly), fn ($c) => $c !== ''));
+
+        return $letters !== [] ? $letters : str_split('VOTER');
+    }
+
+    private function generateFixedLengthFromLetters(array $letters, int $length): string
+    {
+        $letters = array_values(array_filter($letters, fn ($c) => $c !== ''));
+
+        if (count($letters) === 0) {
+            $letters = str_split('VOTER');
+        }
+
+        $picked = [];
+
+        $copy = $letters;
+        shuffle($copy);
+        $picked = array_slice($copy, 0, min($length, count($copy)));
+
+        while (count($picked) < $length) {
+            $picked[] = $letters[random_int(0, count($letters) - 1)];
+        }
+
+        shuffle($picked);
+
+        return implode('', array_slice($picked, 0, $length));
     }
 }

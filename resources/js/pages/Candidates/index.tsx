@@ -167,7 +167,7 @@ export default function CandidatesIndex({
                                 candidateList.map((candidate) => (
                                     <TableRow
                                         key={candidate.id}
-                                        className="text-sm"
+                                        className="text-sm items-center"
                                     >
                                         <TableCell className="text-sm">
                                             <div className="h-10 w-10 overflow-hidden rounded-md border">
@@ -187,7 +187,7 @@ export default function CandidatesIndex({
                                         <TableCell className="text-sm uppercase">
                                             {candidate.name}
                                         </TableCell>
-                                        <TableCell className="flex gap-2 text-sm">
+                                        <TableCell className="flex gap-2 text-sm items-center">
                                             <span
                                                 onClick={() =>
                                                     handleEditClick(candidate)
