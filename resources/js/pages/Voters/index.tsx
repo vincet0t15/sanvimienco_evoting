@@ -6,6 +6,7 @@ import Pagination from '@/components/paginationData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
     Table,
@@ -44,6 +45,8 @@ type Props = {
 export default function VotersIndex({ voterList, filters, events }: Props) {
     const [openCreate, setOpenCreate] = useState(false);
     const [openImport, setOpenImport] = useState(false);
+    const [bulkUpdating, setBulkUpdating] = useState(false);
+    const [updatingIds, setUpdatingIds] = useState<Record<number, boolean>>({});
     const { data, setData } = useForm({
         search: filters.search || '',
     });
@@ -86,6 +89,36 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
         setData('search', e.target.value);
     };
 
+    const setAllActive = (isActive: boolean) => {
+        setBulkUpdating(true);
+        router.patch(
+            '/voters/active',
+            {
+                is_active: isActive,
+                search: data.search || null,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () => setBulkUpdating(false),
+            },
+        );
+    };
+
+    const setVoterActive = (voterId: number, isActive: boolean) => {
+        setUpdatingIds((prev) => ({ ...prev, [voterId]: true }));
+        router.patch(
+            `/voters/${voterId}/active`,
+            { is_active: isActive },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                onFinish: () =>
+                    setUpdatingIds((prev) => ({ ...prev, [voterId]: false })),
+            },
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Voters" />
@@ -101,6 +134,24 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            disabled={bulkUpdating}
+                            onClick={() => setAllActive(true)}
+                        >
+                            Activate all
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            disabled={bulkUpdating}
+                            onClick={() => setAllActive(false)}
+                        >
+                            Deactivate all
+                        </Button>
                         <Button
                             variant="outline"
                             size="sm"
@@ -262,21 +313,27 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                             {voter.username}
                                         </TableCell>
                                         <TableCell className="text-sm">
-                                            {voter.is_active ? (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="bg-green-500/10 text-green-700 dark:text-green-300"
-                                                >
-                                                    Active
-                                                </Badge>
-                                            ) : (
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="bg-red-500/10 text-red-700 dark:text-red-300"
-                                                >
-                                                    Inactive
-                                                </Badge>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <Checkbox
+                                                    checked={voter.is_active}
+                                                    disabled={
+                                                        bulkUpdating ||
+                                                        updatingIds[voter.id] ===
+                                                        true
+                                                    }
+                                                    onCheckedChange={(checked) =>
+                                                        setVoterActive(
+                                                            voter.id,
+                                                            checked === true,
+                                                        )
+                                                    }
+                                                />
+                                                <span className="text-xs text-muted-foreground">
+                                                    {voter.is_active
+                                                        ? 'Active'
+                                                        : 'Inactive'}
+                                                </span>
+                                            </div>
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             <Button

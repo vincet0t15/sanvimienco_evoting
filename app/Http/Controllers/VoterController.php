@@ -7,6 +7,7 @@ use App\Models\Vote;
 use App\Models\Voter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -71,6 +72,44 @@ class VoterController extends Controller
         Voter::create($validated);
 
         return redirect()->route('voters.index');
+    }
+
+    public function bulkActive(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+            'search' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $search = $validated['search'] ?? null;
+
+        Voter::query()
+            ->whereHas('event', fn ($q) => $q->active())
+            ->when($search, function ($query, $search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('username', 'like', "%{$search}%");
+                });
+            })
+            ->update(['is_active' => $validated['is_active']]);
+
+        return redirect()->back();
+    }
+
+    public function setActive(Request $request, Voter $voter): RedirectResponse
+    {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        if (! $voter->event()->active()->exists()) {
+            abort(Response::HTTP_NOT_FOUND);
+        }
+
+        $voter->update(['is_active' => $validated['is_active']]);
+
+        return redirect()->back();
     }
 
     public function print(Request $request)

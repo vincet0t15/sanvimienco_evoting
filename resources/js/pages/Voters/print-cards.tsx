@@ -1,7 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import { Scissors } from 'lucide-react';
 import type { ReactNode } from 'react';
-import AppLogoIcon from '@/components/app-logo-icon';
 import type { Event } from '@/types/event';
 
 type VoterRow = {
