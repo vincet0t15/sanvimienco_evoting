@@ -458,8 +458,8 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                                         <TableCell className="text-sm">
                                             {voter.event?.name ? (
                                                 <Badge
-                                                    variant="outline"
-                                                    className="font-normal"
+
+                                                    className="font-normal bg-green-100 text-green-800"
                                                 >
                                                     {voter.event.name}
                                                 </Badge>

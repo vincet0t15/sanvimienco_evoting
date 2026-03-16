@@ -41,6 +41,25 @@ type Props = {
     filters: FilterProps;
 };
 
+const dateTimeFormatter = new Intl.DateTimeFormat('en-PH', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+});
+
+function formatEventDateTime(value: string | null | undefined): string {
+    if (!value) {
+        return '-';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return dateTimeFormatter.format(date);
+}
+
 export default function EventsIndex({ eventList, filters }: Props) {
     const [openCreate, setOpenCreate] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
@@ -152,10 +171,10 @@ export default function EventsIndex({ eventList, filters }: Props) {
                                         </TableCell>
 
                                         <TableCell className="text-sm">
-                                            {event.start_at || '-'}
+                                            {formatEventDateTime(event.start_at)}
                                         </TableCell>
                                         <TableCell className="text-sm">
-                                            {event.end_at || '-'}
+                                            {formatEventDateTime(event.end_at)}
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             <div className="flex items-center gap-2">
