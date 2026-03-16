@@ -61,16 +61,18 @@ Route::middleware(['auth', 'active.user', 'verified'])->group(function () {
 });
 
 Route::prefix('voter')->name('voter.')->group(function () {
-    // Route::middleware('guest:voter')->group(function () {
+
     Route::get('login', [VoterAuthController::class, 'create'])->name('login');
     Route::post('login', [VoterAuthController::class, 'store'])->name('login.store');
-    // });
 
     Route::middleware('auth.voter')->group(function () {
+
         Route::get('dashboard', [VoterAuthController::class, 'dashboard'])->name('dashboard');
+
         Route::post('vote', [VoterAuthController::class, 'vote'])
             ->middleware('throttle:voter-vote')
             ->name('vote');
+
         Route::post('logout', [VoterAuthController::class, 'destroy'])->name('logout');
     });
 });
