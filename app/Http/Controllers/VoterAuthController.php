@@ -128,7 +128,7 @@ class VoterAuthController extends Controller
                     'position_id' => $candidate->position_id,
                     'name' => $candidate->name,
                     'photo_url' => $candidate->photo_path
-                        ? asset('storage/'.$candidate->photo_path)
+                        ? asset('storage/' . $candidate->photo_path)
                         : null,
                 ];
             })
@@ -147,7 +147,7 @@ class VoterAuthController extends Controller
             ->where('voter_id', $voter->id)
             ->get(['position_id', 'candidate_id'])
             ->groupBy('position_id')
-            ->map(fn ($group) => $group->pluck('candidate_id')->values())
+            ->map(fn($group) => $group->pluck('candidate_id')->values())
             ->toArray();
 
         return Inertia::render('VoterAuth/dashboard', [
@@ -160,6 +160,7 @@ class VoterAuthController extends Controller
 
     public function vote(Request $request): SymfonyResponse
     {
+        dd(1);
         $voter = $request->user('voter');
 
         $event = Event::query()
@@ -189,7 +190,7 @@ class VoterAuthController extends Controller
         $votes = $validated['votes'];
         $positionIds = array_values(array_unique(array_map('intval', array_keys($votes))));
         $candidateIds = array_values(array_unique(array_map('intval', Arr::flatten($votes))));
-        $candidateIds = array_values(array_filter($candidateIds, fn ($id) => $id > 0));
+        $candidateIds = array_values(array_filter($candidateIds, fn($id) => $id > 0));
 
         $positions = Position::query()
             ->select(['id', 'event_id', 'name', 'max_vote'])
@@ -234,7 +235,7 @@ class VoterAuthController extends Controller
 
                 $candidateIdsForPosition = is_array($candidateIdsRaw) ? $candidateIdsRaw : [];
                 $candidateIdsForPosition = array_values(array_unique(array_map('intval', $candidateIdsForPosition)));
-                $candidateIdsForPosition = array_values(array_filter($candidateIdsForPosition, fn ($id) => $id > 0));
+                $candidateIdsForPosition = array_values(array_filter($candidateIdsForPosition, fn($id) => $id > 0));
 
                 if (count($candidateIdsForPosition) === 0) {
                     continue;
