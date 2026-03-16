@@ -1,6 +1,6 @@
 import { Head, router } from '@inertiajs/react';
 import { PlusIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -57,9 +57,15 @@ export default function CandidatesIndex({
     const [openCreate, setOpenCreate] = useState(false);
     const [openEdit, setOpenEdit] = useState(false);
     const [openDelete, setOpenDelete] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState<number>(eventId);
+    const [selectedPositionId, setSelectedPositionId] = useState<number>(positionId);
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
         null,
     );
+
+    const eventPositions = useMemo(() => {
+        return positionsByEvent[String(selectedEventId)] ?? positions;
+    }, [positions, positionsByEvent, selectedEventId]);
 
     const handleEditClick = (candidate: Candidate) => {
         setSelectedCandidate(candidate);
@@ -89,11 +95,26 @@ export default function CandidatesIndex({
 
                     <div className="flex flex-col items-center gap-2 sm:flex-row">
                         <Select
-                            value={String(eventId || '')}
+                            value={String(selectedEventId || '')}
                             onValueChange={(value) => {
+                                const nextEventId = Number(value);
+                                const nextPositions =
+                                    positionsByEvent[String(nextEventId)] ?? [];
+                                const nextPositionId = nextPositions[0]?.id
+                                    ? Number(nextPositions[0].id)
+                                    : 0;
+
+                                setSelectedEventId(nextEventId);
+                                setSelectedPositionId(nextPositionId);
+
                                 router.get(
                                     '/candidates',
-                                    { event_id: value },
+                                    nextPositionId
+                                        ? {
+                                            event_id: nextEventId,
+                                            position_id: nextPositionId,
+                                        }
+                                        : { event_id: nextEventId },
                                     {
                                         preserveState: true,
                                         preserveScroll: true,
@@ -101,7 +122,7 @@ export default function CandidatesIndex({
                                 );
                             }}
                         >
-                            <SelectTrigger className="w-64">
+                            <SelectTrigger className="w-full sm:w-96">
                                 <SelectValue placeholder="Select event" />
                             </SelectTrigger>
                             <SelectContent>
@@ -117,24 +138,30 @@ export default function CandidatesIndex({
                         </Select>
 
                         <Select
-                            value={String(positionId || '')}
+                            value={String(selectedPositionId || '')}
                             onValueChange={(value) => {
+                                const nextPositionId = Number(value);
+                                setSelectedPositionId(nextPositionId);
+
                                 router.get(
                                     '/candidates',
-                                    { event_id: eventId, position_id: value },
+                                    {
+                                        event_id: selectedEventId,
+                                        position_id: nextPositionId,
+                                    },
                                     {
                                         preserveState: true,
                                         preserveScroll: true,
                                     },
                                 );
                             }}
-                            disabled={!eventId || positions.length === 0}
+                            disabled={!selectedEventId || eventPositions.length === 0}
                         >
-                            <SelectTrigger className="w-64">
+                            <SelectTrigger className="w-full sm:w-96">
                                 <SelectValue placeholder="Select position" />
                             </SelectTrigger>
                             <SelectContent>
-                                {positions.map((position) => (
+                                {eventPositions.map((position) => (
                                     <SelectItem
                                         key={position.id}
                                         value={String(position.id)}

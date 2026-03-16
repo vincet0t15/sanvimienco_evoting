@@ -27,10 +27,10 @@ class PositionController extends Controller
 
         $positionList = $eventId
             ? Position::query()
-            ->where('event_id', $eventId)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get()
+                ->where('event_id', $eventId)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get()
             : collect();
 
         return Inertia::render('Positions/index', [
