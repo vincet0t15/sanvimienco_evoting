@@ -40,7 +40,15 @@ class VoterAuthController extends Controller
             ]);
         }
 
-        if ($voter->has_voted) {
+        $alreadyVoted = (bool) $voter->has_voted || Vote::query()
+            ->where('voter_id', $voter->id)
+            ->exists();
+
+        if ($alreadyVoted) {
+            if (! $voter->has_voted) {
+                $voter->forceFill(['has_voted' => true])->save();
+            }
+
             return back()->withErrors([
                 'username' => 'You already voted.',
             ]);
