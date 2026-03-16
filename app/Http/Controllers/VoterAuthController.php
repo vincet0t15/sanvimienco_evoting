@@ -160,7 +160,7 @@ class VoterAuthController extends Controller
 
     public function vote(Request $request): SymfonyResponse
     {
-        dd(1);
+
         $voter = $request->user('voter');
 
         $event = Event::query()
