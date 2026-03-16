@@ -47,7 +47,6 @@ class UserController extends Controller
 
         $user->update(['is_active' => $validated['is_active']]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'User status updated successfully.');
     }
 }
-

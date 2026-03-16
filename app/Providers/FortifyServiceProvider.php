@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
@@ -48,7 +49,13 @@ class FortifyServiceProvider extends ServiceProvider
                 ->where('username', $request->input('username'))
                 ->first();
 
-            if (! $user || ! $user->is_active) {
+            if ($user && ! $user->is_active) {
+                throw ValidationException::withMessages([
+                    'username' => 'Your account is not active. Please wait for the admin to activate your account.',
+                ]);
+            }
+
+            if (! $user) {
                 return null;
             }
 

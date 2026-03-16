@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     CalendarDays,
     CheckCircle2,
+    Fingerprint,
     LockKeyhole,
     ShieldCheck,
     UserRound,
@@ -35,8 +36,8 @@ export default function AuthSimpleLayout({
                 <div className="grid w-full items-center gap-10 lg:grid-cols-2">
                     <div className="hidden space-y-6 lg:block">
                         <Link href={home()} className="inline-flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-lg border bg-card">
-                                <AppLogo />
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+                                <Fingerprint className="size-5 fill-current text-white dark:text-black" />
                             </div>
                             <div className="leading-tight">
                                 <div className="text-base font-semibold">

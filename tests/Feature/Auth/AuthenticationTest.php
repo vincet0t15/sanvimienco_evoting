@@ -71,6 +71,24 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_inactive_users_cannot_login()
+    {
+        $user = User::factory()->create([
+            'is_active' => false,
+        ]);
+
+        $response = $this->from(route('login'))->post(route('login.store'), [
+            'username' => $user->username,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors([
+            'username' => 'Your account is not active. Please wait for the admin to activate your account.',
+        ]);
+    }
+
     public function test_users_can_logout()
     {
         $user = User::factory()->create();
