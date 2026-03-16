@@ -1,7 +1,8 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { SearchIcon, ShieldCheckIcon, UserCogIcon, XIcon } from 'lucide-react';
 import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import Pagination from '@/components/paginationData';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UsersIndex({ userList, filters }: Props) {
+    const { auth } = usePage().props;
+    const currentUserId = auth.user?.id;
     const [updatingIds, setUpdatingIds] = useState<Record<number, boolean>>({});
     const { data, setData } = useForm({
         search: filters.search || '',
@@ -97,6 +100,20 @@ export default function UsersIndex({ userList, filters }: Props) {
             {
                 preserveScroll: true,
                 preserveState: true,
+                onSuccess: () => {
+                    toast.success(
+                        nextActive
+                            ? 'User activated successfully.'
+                            : 'User deactivated successfully.',
+                    );
+                },
+                onError: (errors) => {
+                    const message =
+                        errors.user ??
+                        Object.values(errors)[0] ??
+                        'Something went wrong.';
+                    toast.error(message);
+                },
                 onFinish: () =>
                     setUpdatingIds((prev) => ({ ...prev, [userId]: false })),
             },
@@ -248,7 +265,10 @@ export default function UsersIndex({ userList, filters }: Props) {
                                                     size="sm"
                                                     disabled={
                                                         updatingIds[user.id] ===
-                                                        true
+                                                        true ||
+                                                        (currentUserId != null &&
+                                                            user.id ===
+                                                            currentUserId)
                                                     }
                                                     onClick={() =>
                                                         toggleActive(
@@ -302,4 +322,3 @@ export default function UsersIndex({ userList, filters }: Props) {
         </AppLayout>
     );
 }
-

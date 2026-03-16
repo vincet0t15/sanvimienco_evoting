@@ -27,10 +27,10 @@ class PositionController extends Controller
 
         $positionList = $eventId
             ? Position::query()
-                ->where('event_id', $eventId)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get()
+            ->where('event_id', $eventId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
             : collect();
 
         return Inertia::render('Positions/index', [
@@ -72,9 +72,7 @@ class PositionController extends Controller
             'sort_order' => $nextOrder,
         ]);
 
-        return redirect()->route('positions.index', [
-            'event_id' => $validated['event_id'],
-        ]);
+        return redirect()->back()->with('success', 'Position created successfully.');
     }
 
     public function update(Request $request, Position $position): RedirectResponse
@@ -95,9 +93,7 @@ class PositionController extends Controller
 
         $position->update($validated);
 
-        return redirect()->route('positions.index', [
-            'event_id' => $position->event_id,
-        ]);
+        return redirect()->back()->with('success', 'Position updated successfully.');
     }
 
     public function destroy(Position $position): RedirectResponse
@@ -107,9 +103,7 @@ class PositionController extends Controller
         $eventId = $position->event_id;
         $position->delete();
 
-        return redirect()->route('positions.index', [
-            'event_id' => $eventId,
-        ]);
+        return redirect()->back()->with('success', 'Position deleted successfully.');
     }
 
     public function reorder(Request $request): RedirectResponse
@@ -158,8 +152,6 @@ class PositionController extends Controller
             }
         });
 
-        return redirect()->route('positions.index', [
-            'event_id' => $eventId,
-        ]);
+        return redirect()->back()->with('success', 'Positions reordered successfully.');
     }
 }
