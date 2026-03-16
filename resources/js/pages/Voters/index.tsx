@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { PlusIcon, SearchIcon, UploadIcon, XIcon } from 'lucide-react';
+import { PlusIcon, PrinterIcon, SearchIcon, UploadIcon, XIcon } from 'lucide-react';
 import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
 import { useMemo, useState } from 'react';
 import Pagination from '@/components/paginationData';
@@ -101,6 +101,23 @@ export default function VotersIndex({ voterList, filters, events }: Props) {
                     </div>
 
                     <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="cursor-pointer"
+                            onClick={() => {
+                                const url = data.search
+                                    ? `/voters/print?search=${encodeURIComponent(
+                                        data.search,
+                                    )}`
+                                    : '/voters/print';
+
+                                window.open(url, '_blank');
+                            }}
+                        >
+                            <PrinterIcon className="size-4" />
+                            Print slips
+                        </Button>
                         <Button
                             variant="outline"
                             size="sm"

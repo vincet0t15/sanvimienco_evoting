@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');
     Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
+    Route::get('voters/print', [VoterController::class, 'print'])->name('voters.print');
 });
 
 Route::prefix('voter')->name('voter.')->group(function () {
@@ -58,4 +59,4 @@ Route::prefix('voter')->name('voter.')->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

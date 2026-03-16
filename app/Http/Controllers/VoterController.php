@@ -71,4 +71,33 @@ class VoterController extends Controller
 
         return redirect()->route('voters.index');
     }
+
+    public function print(Request $request)
+    {
+        $search = $request->input('search');
+        $eventId = $request->integer('event_id');
+
+        $voters = Voter::query()
+            ->with(['event:id,name'])
+            ->whereHas('event', fn ($q) => $q->active())
+            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
+            ->when($search, function ($query, $search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('username', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('event_id')
+            ->orderBy('name')
+            ->get(['id', 'event_id', 'name', 'username']);
+
+        return Inertia::render('Voters/print-cards', [
+            'voters' => $voters,
+            'filters' => [
+                'search' => $search,
+                'event_id' => $eventId ?: null,
+            ],
+        ]);
+    }
 }
