@@ -23,7 +23,7 @@ class VoterController extends Controller
 
         $voterList = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn ($q) => $q->active())
+            ->whereHas('event', fn($q) => $q->active())
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -36,7 +36,7 @@ class VoterController extends Controller
             ->withQueryString();
 
         return Inertia::render('Voters/index', [
-            'events' => $events,
+            ' ' => $events,
             'voterList' => $voterList,
             'filters' => [
                 'search' => $search,
@@ -77,10 +77,16 @@ class VoterController extends Controller
         $search = $request->input('search');
         $eventId = $request->integer('event_id');
 
+        $event = Event::query()
+            ->select(['id', 'name'])
+            ->active()
+            ->first();
+
+
         $voters = Voter::query()
             ->with(['event:id,name'])
-            ->whereHas('event', fn ($q) => $q->active())
-            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
+            ->whereHas('event', fn($q) => $q->active())
+            ->when($eventId, fn($q) => $q->where('event_id', $eventId))
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -94,6 +100,7 @@ class VoterController extends Controller
 
         return Inertia::render('Voters/print-cards', [
             'voters' => $voters,
+            'event' => $event,
             'filters' => [
                 'search' => $search,
                 'event_id' => $eventId ?: null,

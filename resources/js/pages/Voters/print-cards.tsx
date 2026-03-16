@@ -2,6 +2,8 @@ import { Head, usePage } from '@inertiajs/react';
 import { Scissors } from 'lucide-react';
 import type { ReactNode } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import events from '@/routes/events';
+import { Event } from '@/types/event';
 
 type VoterRow = {
     id: number;
@@ -14,6 +16,7 @@ type VoterRow = {
 };
 
 type Props = {
+    event: Event
     voters: VoterRow[];
     filters: {
         search?: string | null;
@@ -21,9 +24,8 @@ type Props = {
     };
 };
 
-export default function PrintCards({ voters, filters }: Props) {
-    const { name } = usePage<{ name: string }>().props;
-
+export default function PrintCards({ voters, filters, event }: Props) {
+    console.log(event)
     const printSlips = () => window.print();
 
     const subtitleParts: ReactNode[] = [];
@@ -95,28 +97,21 @@ export default function PrintCards({ voters, filters }: Props) {
                 {voters.map((voter) => (
                     <div
                         key={voter.id}
-                        className="page-break-inside-avoid relative flex h-[40mm] flex-col justify-between break-inside-avoid border-b border-r border-gray-300 p-3"
+                        className="page-break-inside-avoid relative flex h-[30mm] flex-col justify-between break-inside-avoid border-b border-r border-gray-300 p-3"
                     >
                         <div className="absolute right-0 top-0 p-1 opacity-20 print:opacity-10">
                             <Scissors size={10} />
                         </div>
 
                         <div className="mb-2 flex items-start gap-2">
-                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center pt-1">
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-emerald-600 text-white">
-                                    <AppLogoIcon className="h-4 w-4 fill-current" />
-                                </div>
-                            </div>
                             <div className="overflow-hidden pt-0.5 leading-none">
-                                <h3 className="w-full truncate text-[10px] font-bold uppercase">
-                                    {name || 'Voting System'}
+                                <h3 className="w-full truncate text-[10px] font-bold uppercase mb-1">
+                                    {event.name || 'Voting System'}
                                 </h3>
                                 <p className="text-[9px] font-medium uppercase text-gray-500">
                                     Voter Credential
                                 </p>
-                                <p className="max-w-[150px] truncate text-[8px] text-gray-400">
-                                    {voter.event?.name ?? '—'}
-                                </p>
+
                             </div>
                         </div>
 
@@ -148,15 +143,6 @@ export default function PrintCards({ voters, filters }: Props) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between border-t border-gray-100 pt-1 text-[9px] text-gray-900">
-                            <span className="truncate">
-                                ID: {voter.id}
-                            </span>
-                            <span className="font-mono">
-                                {voter.event?.id ?? ''}
-                            </span>
                         </div>
                     </div>
                 ))}
