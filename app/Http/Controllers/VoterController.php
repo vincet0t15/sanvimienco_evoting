@@ -235,6 +235,7 @@ class VoterController extends Controller
 
     public function votes(Voter $voter)
     {
+
         $voter->loadMissing(['event:id,name']);
 
         $voteRows = Vote::query()

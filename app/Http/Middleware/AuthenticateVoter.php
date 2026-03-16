@@ -18,6 +18,17 @@ class AuthenticateVoter
         $voter = $request->user('voter');
 
         if ($voter) {
+            if (! $voter->is_active || $voter->has_voted) {
+                $voter->forceFill(['current_session_token' => null])->save();
+
+                Auth::guard('voter')->logout();
+                $request->session()->forget('voter_session_token');
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->guest(route('voter.login'));
+            }
+
             $sessionToken = (string) $request->session()->get('voter_session_token', '');
             $currentToken = (string) ($voter->current_session_token ?? '');
 

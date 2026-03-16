@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class VoterAuthController extends Controller
 {
@@ -157,7 +158,7 @@ class VoterAuthController extends Controller
         ]);
     }
 
-    public function vote(Request $request): RedirectResponse
+    public function vote(Request $request): SymfonyResponse
     {
         $voter = $request->user('voter');
 
@@ -326,8 +327,8 @@ class VoterAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()
-            ->route('voter.login')
-            ->with('success', 'Votes submitted successfully.');
+        $request->session()->flash('success', 'Votes submitted successfully.');
+
+        return Inertia::location(route('voter.login'));
     }
 }
