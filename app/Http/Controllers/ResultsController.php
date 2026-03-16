@@ -22,8 +22,11 @@ class ResultsController extends Controller
             return Inertia::render('Results/index', [
                 'event' => null,
                 'positions' => [],
+                'can_show_results' => false,
             ]);
         }
+
+        $canShowResults = now()->greaterThanOrEqualTo($event->end_at);
 
         $positions = Position::query()
             ->where('event_id', $event->id)
@@ -31,15 +34,17 @@ class ResultsController extends Controller
             ->orderBy('id')
             ->get(['id', 'name', 'max_vote']);
 
-        $positionPayload = $positions->map(function (Position $position) use ($event) {
-            $voteCounts = Vote::query()
-                ->where('event_id', $event->id)
-                ->where('position_id', $position->id)
-                ->selectRaw('candidate_id, COUNT(*) as votes_count')
-                ->groupBy('candidate_id')
-                ->pluck('votes_count', 'candidate_id')
-                ->map(fn ($count) => (int) $count)
-                ->all();
+        $positionPayload = $positions->map(function (Position $position) use ($event, $canShowResults) {
+            $voteCounts = $canShowResults
+                ? Vote::query()
+                    ->where('event_id', $event->id)
+                    ->where('position_id', $position->id)
+                    ->selectRaw('candidate_id, COUNT(*) as votes_count')
+                    ->groupBy('candidate_id')
+                    ->pluck('votes_count', 'candidate_id')
+                    ->map(fn ($count) => (int) $count)
+                    ->all()
+                : [];
 
             $candidates = Candidate::query()
                 ->where('event_id', $event->id)
@@ -56,8 +61,11 @@ class ResultsController extends Controller
                         'votes_count' => $votesCount,
                     ];
                 })
-                ->sortByDesc('votes_count')
                 ->values();
+
+            if ($canShowResults) {
+                $candidates = $candidates->sortByDesc('votes_count')->values();
+            }
 
             return [
                 'id' => $position->id,
@@ -76,6 +84,7 @@ class ResultsController extends Controller
                 'end_at' => $event->end_at?->toIso8601String(),
             ],
             'positions' => $positionPayload,
+            'can_show_results' => $canShowResults,
         ]);
     }
 }

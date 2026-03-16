@@ -45,6 +45,7 @@ type Event = {
 type Props = {
     event: Event | null;
     positions: Position[];
+    can_show_results: boolean;
 };
 
 function calculateTimeLeft(endTime: string) {
@@ -63,7 +64,7 @@ function calculateTimeLeft(endTime: string) {
     };
 }
 
-export default function ResultsIndex({ event, positions }: Props) {
+export default function ResultsIndex({ event, positions, can_show_results }: Props) {
     const [timeLeft, setTimeLeft] = useState<ReturnType<
         typeof calculateTimeLeft
     > | null>(() => {
@@ -147,6 +148,7 @@ export default function ResultsIndex({ event, positions }: Props) {
         timeLeft?.minutes === 0 &&
         timeLeft?.seconds === 0;
 
+    const showResults = can_show_results;
     const showLiveBadge = Boolean(event?.is_active && !isTimeUp);
 
     const getTotalVotes = (candidates: Candidate[]) =>
@@ -259,6 +261,23 @@ export default function ResultsIndex({ event, positions }: Props) {
                     </Card>
                 ) : (
                     <div className="mx-auto grid w-full gap-8">
+                        {!showResults ? (
+                            <Card className="border-2 border-dashed">
+                                <CardContent className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                                    <div className="mb-2 rounded-full bg-muted/50 p-4">
+                                        <AlertCircle className="h-7 w-7 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold">
+                                        Results are hidden
+                                    </h3>
+                                    <p className="max-w-xl text-sm text-muted-foreground">
+                                        Results will be available once the event
+                                        reaches the end time.
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        ) : null}
+
                         {positions.map((position) => {
                             const totalVotes = getTotalVotes(position.candidates);
 
@@ -347,7 +366,7 @@ export default function ResultsIndex({ event, positions }: Props) {
                                                                             candidate.id
                                                                         }
                                                                         className={
-                                                                            isWinner
+                                                                            showResults && isWinner
                                                                                 ? 'bg-emerald-50/30 hover:bg-emerald-50/50 dark:bg-emerald-900/10 dark:hover:bg-emerald-900/20'
                                                                                 : 'hover:bg-muted/30'
                                                                         }
@@ -361,35 +380,40 @@ export default function ResultsIndex({ event, positions }: Props) {
                                                                             <div className="flex items-center gap-4">
                                                                                 <div className="relative shrink-0">
                                                                                     <Avatar className="h-12 w-12 border-2 border-slate-200 shadow-sm dark:border-slate-700">
-                                                                                        <AvatarImage
-                                                                                            src={
-                                                                                                candidate.photo_url ??
-                                                                                                undefined
-                                                                                            }
-                                                                                            alt={
-                                                                                                candidate.name
-                                                                                            }
-                                                                                            className="object-cover"
-                                                                                        />
+                                                                                        {showResults ? (
+                                                                                            <AvatarImage
+                                                                                                src={
+                                                                                                    candidate.photo_url ??
+                                                                                                    undefined
+                                                                                                }
+                                                                                                alt={
+                                                                                                    candidate.name
+                                                                                                }
+                                                                                                className="object-cover"
+                                                                                            />
+                                                                                        ) : null}
                                                                                         <AvatarFallback className="bg-slate-100 dark:bg-slate-800">
                                                                                             <User className="h-6 w-6 text-slate-400" />
                                                                                         </AvatarFallback>
                                                                                     </Avatar>
-                                                                                    {isWinner &&
+                                                                                    {showResults &&
+                                                                                    isWinner &&
                                                                                         rank ===
                                                                                         1 ? (
                                                                                         <div className="absolute -top-2 -right-2 rounded-full border-2 border-white bg-yellow-400 p-1.5 text-yellow-900 shadow-lg dark:border-slate-900">
                                                                                             <Trophy className="h-3 w-3 fill-current md:h-4 md:w-4" />
                                                                                         </div>
                                                                                     ) : null}
-                                                                                    {isWinner &&
+                                                                                    {showResults &&
+                                                                                    isWinner &&
                                                                                         rank ===
                                                                                         2 ? (
                                                                                         <div className="absolute -top-2 -right-2 rounded-full border-2 border-white bg-slate-300 p-1.5 text-slate-800 shadow-lg dark:border-slate-900">
                                                                                             <Medal className="h-3 w-3 fill-current md:h-4 md:w-4" />
                                                                                         </div>
                                                                                     ) : null}
-                                                                                    {isWinner &&
+                                                                                    {showResults &&
+                                                                                    isWinner &&
                                                                                         rank ===
                                                                                         3 ? (
                                                                                         <div className="absolute -top-2 -right-2 rounded-full border-2 border-white bg-orange-400 p-1.5 text-orange-900 shadow-lg dark:border-slate-900">
@@ -399,9 +423,11 @@ export default function ResultsIndex({ event, positions }: Props) {
                                                                                 </div>
                                                                                 <div className="flex flex-col">
                                                                                     <h4 className="text-base font-bold leading-tight text-slate-700 md:text-lg dark:text-slate-200">
-                                                                                        {candidate.name}
+                                                                                        {showResults
+                                                                                            ? candidate.name
+                                                                                            : 'Tallying...'}
                                                                                     </h4>
-                                                                                    {isWinner ? (
+                                                                                    {showResults && isWinner ? (
                                                                                         <Badge
                                                                                             variant="outline"
                                                                                             className="mt-1 w-fit border-emerald-300/50 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
@@ -414,20 +440,24 @@ export default function ResultsIndex({ event, positions }: Props) {
                                                                         </TableCell>
                                                                         <TableCell className="py-4 text-right">
                                                                             <div className="font-mono text-lg font-bold leading-none">
-                                                                                {candidate.votes_count.toLocaleString()}
+                                                                                {showResults
+                                                                                    ? candidate.votes_count.toLocaleString()
+                                                                                    : '—'}
                                                                             </div>
                                                                         </TableCell>
                                                                         <TableCell className="py-4">
                                                                             <div className="flex items-center gap-3">
                                                                                 <Progress
                                                                                     value={
-                                                                                        percentage
+                                                                                        showResults ? percentage : 0
                                                                                     }
                                                                                     className="h-2.5 flex-1 bg-emerald-100/50 dark:bg-emerald-900/20"
                                                                                     indicatorClassName="bg-emerald-500"
                                                                                 />
                                                                                 <span className="w-10 text-right text-xs font-medium">
-                                                                                    {percentage}%
+                                                                                    {showResults
+                                                                                        ? `${percentage}%`
+                                                                                        : '—'}
                                                                                 </span>
                                                                             </div>
                                                                         </TableCell>
