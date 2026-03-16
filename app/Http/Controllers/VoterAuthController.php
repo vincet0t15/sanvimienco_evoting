@@ -9,10 +9,12 @@ use App\Models\Vote;
 use App\Models\Voter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -125,7 +127,7 @@ class VoterAuthController extends Controller
                     'position_id' => $candidate->position_id,
                     'name' => $candidate->name,
                     'photo_url' => $candidate->photo_path
-                        ? asset('storage/' . $candidate->photo_path)
+                        ? asset('storage/'.$candidate->photo_path)
                         : null,
                 ];
             })
@@ -144,7 +146,7 @@ class VoterAuthController extends Controller
             ->where('voter_id', $voter->id)
             ->get(['position_id', 'candidate_id'])
             ->groupBy('position_id')
-            ->map(fn($group) => $group->pluck('candidate_id')->values())
+            ->map(fn ($group) => $group->pluck('candidate_id')->values())
             ->toArray();
 
         return Inertia::render('VoterAuth/dashboard', [
@@ -157,7 +159,6 @@ class VoterAuthController extends Controller
 
     public function vote(Request $request): RedirectResponse
     {
-
         $voter = $request->user('voter');
 
         $event = Event::query()
@@ -179,102 +180,29 @@ class VoterAuthController extends Controller
         }
 
         $validated = $request->validate([
-            'votes' => ['nullable', 'array'],
+            'votes' => ['required', 'array'],
+            'votes.*' => ['array'],
+            'votes.*.*' => ['integer', Rule::exists('candidates', 'id')],
         ]);
 
-        $votes = $validated['votes'] ?? [];
+        $votes = $validated['votes'];
+        $positionIds = array_values(array_unique(array_map('intval', array_keys($votes))));
+        $candidateIds = array_values(array_unique(array_map('intval', Arr::flatten($votes))));
+        $candidateIds = array_values(array_filter($candidateIds, fn ($id) => $id > 0));
 
         $positions = Position::query()
-            ->select(['id', 'max_vote'])
-            ->where('event_id', $voter->event_id)
+            ->select(['id', 'event_id', 'name', 'max_vote'])
+            ->whereIn('id', $positionIds)
             ->get()
             ->keyBy('id');
 
-        $cleanVotes = [];
-        $allCandidateIds = [];
-
-        $rows = [];
-
-        foreach ($votes as $positionIdRaw => $candidateIdsRaw) {
-            $positionId = (int) $positionIdRaw;
-            $position = $positions->get($positionId);
-
-            if (! $position) {
-                return back()->withErrors([
-                    'votes' => 'Invalid position selection.',
-                ]);
-            }
-
-            if (! is_array($candidateIdsRaw)) {
-                return back()->withErrors([
-                    'votes' => 'Invalid vote payload.',
-                ]);
-            }
-
-            $candidateIds = array_values(array_unique(array_map('intval', $candidateIdsRaw)));
-            $candidateIds = array_values(array_filter($candidateIds, fn($id) => $id > 0));
-
-            if (count($candidateIds) > (int) $position->max_vote) {
-                return back()->withErrors([
-                    'votes' => 'You selected too many candidates for a position.',
-                ]);
-            }
-
-            if (count($candidateIds) === 0) {
-                continue;
-            }
-
-            $cleanVotes[$positionId] = $candidateIds;
-            $allCandidateIds = array_merge($allCandidateIds, $candidateIds);
-        }
-
-        $allCandidateIds = array_values(array_unique($allCandidateIds));
-
-        if (count($cleanVotes) === 0) {
-            return back()->withErrors([
-                'votes' => 'Please select at least one candidate.',
-            ]);
-        }
-
-        $validCandidatesByPosition = Candidate::query()
-            ->select(['id', 'position_id'])
-            ->where('event_id', $voter->event_id)
-            ->whereIn('id', $allCandidateIds)
+        $candidates = Candidate::query()
+            ->select(['id', 'event_id', 'position_id', 'name'])
+            ->whereIn('id', $candidateIds)
             ->get()
-            ->groupBy('position_id')
-            ->map(fn($group) => $group->pluck('id')->flip())
-            ->all();
+            ->keyBy('id');
 
-        foreach ($cleanVotes as $positionId => $candidateIds) {
-            $validSet = $validCandidatesByPosition[$positionId] ?? [];
-
-            foreach ($candidateIds as $candidateId) {
-                if (! isset($validSet[$candidateId])) {
-                    return back()->withErrors([
-                        'votes' => 'Invalid candidate selection.',
-                    ]);
-                }
-            }
-
-            foreach ($candidateIds as $candidateId) {
-                $rows[] = [
-                    'event_id' => $voter->event_id,
-                    'voter_id' => $voter->id,
-                    'position_id' => $positionId,
-                    'candidate_id' => $candidateId,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
-        }
-
-        if (count($rows) === 0) {
-            return back()->withErrors([
-                'votes' => 'Please select at least one candidate.',
-            ]);
-        }
-
-        DB::transaction(function () use ($event, $now, $voter, $rows) {
+        DB::transaction(function () use ($candidates, $event, $now, $positionIds, $positions, $voter, $votes) {
             $lockedVoter = Voter::query()
                 ->whereKey($voter->id)
                 ->lockForUpdate()
@@ -298,8 +226,79 @@ class VoterAuthController extends Controller
                 ]);
             }
 
+            $rows = [];
+
+            foreach ($votes as $positionIdRaw => $candidateIdsRaw) {
+                $positionId = (int) $positionIdRaw;
+
+                $candidateIdsForPosition = is_array($candidateIdsRaw) ? $candidateIdsRaw : [];
+                $candidateIdsForPosition = array_values(array_unique(array_map('intval', $candidateIdsForPosition)));
+                $candidateIdsForPosition = array_values(array_filter($candidateIdsForPosition, fn ($id) => $id > 0));
+
+                if (count($candidateIdsForPosition) === 0) {
+                    continue;
+                }
+
+                $position = $positions->get($positionId);
+                if (! $position) {
+                    throw ValidationException::withMessages([
+                        'votes' => "Position ID {$positionId} not found.",
+                    ]);
+                }
+
+                if ((int) $position->event_id !== (int) $lockedVoter->event_id) {
+                    throw ValidationException::withMessages([
+                        'votes' => 'You are not authorized to vote for this position.',
+                    ]);
+                }
+
+                if (count($candidateIdsForPosition) > (int) $position->max_vote) {
+                    throw ValidationException::withMessages([
+                        'votes' => "You selected too many candidates for position: {$position->name}",
+                    ]);
+                }
+
+                foreach ($candidateIdsForPosition as $candidateId) {
+                    $candidate = $candidates->get($candidateId);
+
+                    if (! $candidate) {
+                        throw ValidationException::withMessages([
+                            'votes' => "Candidate ID {$candidateId} not found.",
+                        ]);
+                    }
+
+                    if ((int) $candidate->event_id !== (int) $lockedVoter->event_id) {
+                        throw ValidationException::withMessages([
+                            'votes' => 'Invalid candidate selection.',
+                        ]);
+                    }
+
+                    if ((int) $candidate->position_id !== $positionId) {
+                        throw ValidationException::withMessages([
+                            'votes' => "Candidate {$candidate->name} does not belong to position {$position->name}",
+                        ]);
+                    }
+
+                    $rows[] = [
+                        'voter_id' => $lockedVoter->id,
+                        'candidate_id' => $candidateId,
+                        'position_id' => $positionId,
+                        'event_id' => $position->event_id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+            }
+
+            if (count($rows) === 0) {
+                throw ValidationException::withMessages([
+                    'votes' => 'Please select at least one candidate.',
+                ]);
+            }
+
             Vote::query()
-                ->where('voter_id', $voter->id)
+                ->where('voter_id', $lockedVoter->id)
+                ->whereIn('position_id', $positionIds)
                 ->delete();
 
             Vote::query()->insert($rows);
@@ -315,9 +314,11 @@ class VoterAuthController extends Controller
                 ]);
             }
 
-            $lockedVoter->has_voted = true;
-            $lockedVoter->current_session_token = null;
-            $lockedVoter->save();
+            $lockedVoter->forceFill([
+                'has_voted' => true,
+                'is_active' => false,
+                'current_session_token' => null,
+            ])->save();
         });
 
         Auth::guard('voter')->logout();

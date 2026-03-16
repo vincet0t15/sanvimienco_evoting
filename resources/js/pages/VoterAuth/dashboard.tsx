@@ -158,6 +158,7 @@ export default function VoterDashboard({
             preserveScroll: true,
             onSuccess: (response: { props: FlashProps }) => {
                 toast.success(response.props.flash?.success);
+                window.location.href = '/voter/login';
             },
             onError: (errs) => {
                 Object.values(errs).forEach((error) => {
