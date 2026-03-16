@@ -28,6 +28,7 @@ import positions from '@/routes/positions';
 import results from '@/routes/results';
 import voters from '@/routes/voters';
 import type { BreadcrumbItem } from '@/types';
+import { ChartPieDonutText } from './chart';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -292,7 +293,7 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                         </Card>
                     )}
                 </div>
-
+                <ChartPieDonutText />
                 <div>
                     <h2 className="mb-4 text-lg font-semibold">
                         System Overview
