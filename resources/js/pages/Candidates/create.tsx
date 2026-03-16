@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, UploadIcon, XIcon } from 'lucide-react';
 import type { ChangeEvent, SubmitEventHandler } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,8 @@ export default function CandidateCreateDialog({
     positionsByEvent,
     positionId,
 }: Props) {
+    const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+    const photoPreviewUrlRef = useRef<string | null>(null);
     const { data, setData, post, processing, errors, reset } =
         useForm<CandidateCreateForm>({
             event_id: String(eventId || ''),
@@ -57,6 +60,15 @@ export default function CandidateCreateDialog({
         });
 
     const positions = positionsByEvent[data.event_id] ?? [];
+
+    useEffect(() => {
+        return () => {
+            if (photoPreviewUrlRef.current) {
+                URL.revokeObjectURL(photoPreviewUrlRef.current);
+                photoPreviewUrlRef.current = null;
+            }
+        };
+    }, []);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setData(e.target.id as keyof CandidateCreateForm, e.target.value);
@@ -163,17 +175,106 @@ export default function CandidateCreateDialog({
 
                     <div className="space-y-2">
                         <Label htmlFor="photo">Photo</Label>
-                        <Input
+                        <input
                             id="photo"
                             type="file"
-                            accept="image/*"
-                            onChange={(e) =>
-                                setData(
-                                    'photo',
-                                    e.target.files?.[0] ?? null,
-                                )
-                            }
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0] ?? null;
+
+                                if (photoPreviewUrlRef.current) {
+                                    URL.revokeObjectURL(photoPreviewUrlRef.current);
+                                    photoPreviewUrlRef.current = null;
+                                }
+
+                                if (file) {
+                                    const url = URL.createObjectURL(file);
+                                    photoPreviewUrlRef.current = url;
+                                    setPhotoPreviewUrl(url);
+                                } else {
+                                    setPhotoPreviewUrl(null);
+                                }
+
+                                setData('photo', file);
+                            }}
                         />
+                        <div className="space-y-3">
+                            <div className="relative overflow-hidden rounded-lg border-2 border-dashed p-4">
+                                {photoPreviewUrl ? (
+                                    <div className="space-y-3">
+                                        <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
+                                            <img
+                                                src={photoPreviewUrl}
+                                                alt="Preview"
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="cursor-pointer"
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById('photo')
+                                                        ?.click()
+                                                }
+                                            >
+                                                <UploadIcon className="size-4" />
+                                                Change photo
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="cursor-pointer"
+                                                onClick={() => {
+                                                    if (photoPreviewUrlRef.current) {
+                                                        URL.revokeObjectURL(
+                                                            photoPreviewUrlRef.current,
+                                                        );
+                                                        photoPreviewUrlRef.current = null;
+                                                    }
+
+                                                    setPhotoPreviewUrl(null);
+                                                    setData('photo', null);
+                                                }}
+                                            >
+                                                <XIcon className="size-4" />
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-md py-8 text-center"
+                                        onClick={() =>
+                                            document
+                                                .getElementById('photo')
+                                                ?.click()
+                                        }
+                                    >
+                                        <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                                            <UploadIcon className="size-5 text-muted-foreground" />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <div className="text-sm font-semibold">
+                                                Upload Photo
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Click to browse
+                                            </div>
+                                        </div>
+                                    </button>
+                                )}
+                            </div>
+                            <div className="text-center text-xs text-muted-foreground">
+                                Allowed: jpeg, jpg, png, webp. Max size 2MB.
+                            </div>
+                        </div>
                         <InputError message={errors.photo} />
                     </div>
 
