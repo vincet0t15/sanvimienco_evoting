@@ -47,7 +47,7 @@ class PositionController extends Controller
                 'required',
                 'integer',
                 Rule::exists('events', 'id')->where(function ($query) {
-                    $query->where('start_at', '<=', now())->where('end_at', '>=', now());
+                    $query->where('is_active', true);
                 }),
             ],
             'name' => [
@@ -117,7 +117,7 @@ class PositionController extends Controller
                 'required',
                 'integer',
                 Rule::exists('events', 'id')->where(function ($query) {
-                    $query->where('start_at', '<=', now())->where('end_at', '>=', now());
+                    $query->where('is_active', true);
                 }),
             ],
             'ordered_ids' => ['required', 'array'],

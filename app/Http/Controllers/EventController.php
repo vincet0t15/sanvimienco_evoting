@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Event;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -60,5 +61,18 @@ class EventController extends Controller
         $event->delete();
 
         return redirect()->route('events.index');
+    }
+
+    public function setActive(Request $request, Event $event): RedirectResponse
+    {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $event->update([
+            'is_active' => (bool) $validated['is_active'],
+        ]);
+
+        return back();
     }
 }

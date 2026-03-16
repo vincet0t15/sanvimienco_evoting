@@ -46,6 +46,12 @@ class VoterAuthController extends Controller
             ]);
         }
 
+        if (! Event::query()->active()->whereKey($voter->event_id)->exists()) {
+            return back()->withErrors([
+                'username' => 'Event is not active.',
+            ]);
+        }
+
         Auth::guard('voter')->login($voter, $request->boolean('remember'));
         $request->session()->regenerate();
 
@@ -122,8 +128,14 @@ class VoterAuthController extends Controller
         $voter = $request->user('voter');
 
         $event = Event::query()
-            ->select(['id', 'start_at', 'end_at'])
+            ->select(['id', 'start_at', 'end_at', 'is_active'])
             ->findOrFail($voter->event_id);
+
+        if (! $event->is_active) {
+            return back()->withErrors([
+                'votes' => 'Voting is not open.',
+            ]);
+        }
 
         if (now()->lt($event->start_at) || now()->gt($event->end_at)) {
             return back()->withErrors([

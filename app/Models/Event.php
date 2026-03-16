@@ -15,6 +15,7 @@ class Event extends Model
         'description',
         'start_at',
         'end_at',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -22,14 +23,13 @@ class Event extends Model
         return [
             'start_at' => 'datetime',
             'end_at' => 'datetime',
+            'is_active' => 'boolean',
         ];
     }
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query
-            ->where('start_at', '<=', now())
-            ->where('end_at', '>=', now());
+        return $query->where('is_active', true);
     }
 
     public function voters()

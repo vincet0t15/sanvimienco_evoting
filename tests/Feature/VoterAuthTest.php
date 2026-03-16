@@ -33,6 +33,7 @@ class VoterAuthTest extends TestCase
             'name' => 'Test Event',
             'start_at' => now(),
             'end_at' => now()->addDay(),
+            'is_active' => true,
         ]);
 
         $voter = Voter::create([
@@ -85,6 +86,7 @@ class VoterAuthTest extends TestCase
             'name' => 'Test Event',
             'start_at' => now()->subMinute(),
             'end_at' => now()->addDay(),
+            'is_active' => true,
         ]);
 
         $position = Position::create([

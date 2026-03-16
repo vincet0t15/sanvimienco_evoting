@@ -3,6 +3,7 @@ import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { ChangeEventHandler, KeyboardEventHandler } from 'react';
 import Pagination from '@/components/paginationData';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -81,6 +82,17 @@ export default function EventsIndex({ eventList, filters }: Props) {
         setOpenImportVoters(true);
     };
 
+    const handleToggleActive = (event: Event) => {
+        router.put(
+            `/events/${event.id}/active`,
+            { is_active: !event.is_active },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            },
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Events" />
@@ -121,6 +133,9 @@ export default function EventsIndex({ eventList, filters }: Props) {
                                     End
                                 </TableHead>
                                 <TableHead className="font-bold text-primary">
+                                    Active
+                                </TableHead>
+                                <TableHead className="font-bold text-primary">
                                     Action
                                 </TableHead>
                             </TableRow>
@@ -141,6 +156,36 @@ export default function EventsIndex({ eventList, filters }: Props) {
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             {event.end_at || '-'}
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            <div className="flex items-center gap-2">
+
+                                                {event.is_active ? (
+                                                    <Badge
+                                                        onClick={() =>
+                                                            handleToggleActive(
+                                                                event,
+                                                            )
+                                                        }
+                                                        variant="secondary"
+                                                        className="cursor-pointer bg-green-500/10 text-green-700 hover:bg-green-500/20 dark:text-green-300"
+                                                    >
+                                                        Active
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge
+                                                        onClick={() =>
+                                                            handleToggleActive(
+                                                                event,
+                                                            )
+                                                        }
+                                                        variant="secondary"
+                                                        className="cursor-pointer bg-slate-500/10 text-slate-700 hover:bg-slate-500/20 dark:text-slate-300"
+                                                    >
+                                                        Inactive
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </TableCell>
                                         <TableCell className="flex gap-2 text-sm">
                                             <span
@@ -175,7 +220,7 @@ export default function EventsIndex({ eventList, filters }: Props) {
                             ) : (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={7}
+                                        colSpan={5}
                                         className="py-3 text-center text-gray-500"
                                     >
                                         No data available.

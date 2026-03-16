@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('events', [EventController::class, 'index'])->name('events.index');
     Route::post('events', [EventController::class, 'store'])->name('events.store');
     Route::put('events/{event}', [EventController::class, 'update'])->name('events.update');
+    Route::put('events/{event}/active', [EventController::class, 'setActive'])->name('events.active');
     Route::delete('events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
     Route::post('events/{event}/voters/import', [VoterImportController::class, 'store'])
         ->name('events.voters.import');
@@ -57,4 +58,4 @@ Route::prefix('voter')->name('voter.')->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
