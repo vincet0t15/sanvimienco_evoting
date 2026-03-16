@@ -72,8 +72,17 @@ class VoterAuthController extends Controller
         $voter = $request->user('voter');
 
         $event = Event::query()
-            ->select(['id', 'name', 'start_at', 'end_at'])
+            ->select(['id', 'name', 'start_at', 'end_at', 'is_active'])
             ->find($voter->event_id);
+
+        if (! $event || ! $event->is_active) {
+            return Inertia::render('VoterAuth/dashboard', [
+                'voter' => $voter,
+                'event' => $event,
+                'positions' => [],
+                'selectedVotes' => [],
+            ]);
+        }
 
         $positions = Position::query()
             ->select(['id', 'event_id', 'name', 'max_vote', 'sort_order'])

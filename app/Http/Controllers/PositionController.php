@@ -25,11 +25,13 @@ class PositionController extends Controller
             $eventId = (int) ($events->first()?->id ?? 0);
         }
 
-        $positionList = Position::query()
-            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get();
+        $positionList = $eventId
+            ? Position::query()
+                ->where('event_id', $eventId)
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get()
+            : collect();
 
         return Inertia::render('Positions/index', [
             'events' => $events,
