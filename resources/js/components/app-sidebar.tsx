@@ -5,6 +5,7 @@ import {
     ListOrdered,
     Printer,
     Trophy,
+    UserCog,
     UserRound,
     Users,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ import candidates from '@/routes/candidates';
 import events from '@/routes/events';
 import positions from '@/routes/positions';
 import results from '@/routes/results';
+import users from '@/routes/users';
 import voters from '@/routes/voters';
 import type { NavGroup } from '@/types';
 
@@ -76,6 +78,16 @@ const mainNavItems: NavGroup[] = [
                 title: 'Print slips',
                 href: voters.print.url(),
                 icon: Printer,
+            },
+        ],
+    },
+    {
+        title: 'Administration',
+        children: [
+            {
+                title: 'Users',
+                href: users.index.url(),
+                icon: UserCog,
             },
         ],
     },

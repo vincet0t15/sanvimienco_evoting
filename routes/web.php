@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ResultsController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoterAuthController;
 use App\Http\Controllers\VoterController;
 use App\Http\Controllers\VoterImportController;
@@ -43,6 +44,10 @@ Route::middleware(['auth', 'active.user', 'verified'])->group(function () {
     // Results
     Route::get('results', [ResultsController::class, 'index'])->name('results.index');
 
+    // Users
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::patch('users/{user}/active', [UserController::class, 'setActive'])->name('users.set-active');
+
     // Voters
     Route::get('voters', [VoterController::class, 'index'])->name('voters.index');
     Route::post('voters', [VoterController::class, 'store'])->name('voters.store');
@@ -69,4 +74,4 @@ Route::prefix('voter')->name('voter.')->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
