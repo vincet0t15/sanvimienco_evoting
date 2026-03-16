@@ -16,21 +16,26 @@ class CandidateController extends Controller
     public function index(Request $request)
     {
         $events = Event::query()
+            ->active()
             ->select(['id', 'name'])
             ->orderByDesc('id')
             ->get();
 
         $eventId = (int) $request->input('event_id', $events->first()?->id);
+        if ($eventId && ! $events->contains('id', $eventId)) {
+            $eventId = (int) ($events->first()?->id ?? 0);
+        }
 
         $positions = Position::query()
             ->select(['id', 'event_id', 'name'])
-            ->where('event_id', $eventId)
+            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
 
         $positionsByEvent = Position::query()
             ->select(['id', 'event_id', 'name'])
+            ->whereIn('event_id', $events->pluck('id'))
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get()
@@ -47,7 +52,7 @@ class CandidateController extends Controller
         $positionId = (int) $request->input('position_id', $positions->first()?->id);
 
         $candidateList = Candidate::query()
-            ->where('event_id', $eventId)
+            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->when($positionId, fn ($q) => $q->where('position_id', $positionId))
             ->orderBy('id')
             ->get()
@@ -79,8 +84,18 @@ class CandidateController extends Controller
         $eventId = (int) $request->input('event_id');
 
         $validated = $request->validate([
-            'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
-            'position_id' => ['required', 'integer', Rule::exists('positions', 'id')->where('event_id', $eventId)],
+            'event_id' => [
+                'required',
+                'integer',
+                Rule::exists('events', 'id')->where(function ($query) {
+                    $query->where('start_at', '<=', now())->where('end_at', '>=', now());
+                }),
+            ],
+            'position_id' => [
+                'required',
+                'integer',
+                Rule::exists('positions', 'id')->where('event_id', $eventId),
+            ],
             'name' => ['required', 'string', 'max:255', Rule::unique('candidates', 'name')->where('position_id', $request->input('position_id'))],
             'photo' => ['nullable', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
         ]);
@@ -104,6 +119,8 @@ class CandidateController extends Controller
 
     public function update(Request $request, Candidate $candidate): RedirectResponse
     {
+        abort_unless(Event::query()->active()->whereKey($candidate->event_id)->exists(), 403);
+
         $validated = $request->validate([
             'position_id' => ['required', 'integer', Rule::exists('positions', 'id')->where('event_id', $candidate->event_id)],
             'name' => [
@@ -136,6 +153,8 @@ class CandidateController extends Controller
 
     public function destroy(Candidate $candidate): RedirectResponse
     {
+        abort_unless(Event::query()->active()->whereKey($candidate->event_id)->exists(), 403);
+
         $eventId = $candidate->event_id;
         $positionId = $candidate->position_id;
 

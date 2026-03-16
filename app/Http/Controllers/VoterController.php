@@ -16,12 +16,14 @@ class VoterController extends Controller
         $search = $request->input('search');
 
         $events = Event::query()
+            ->active()
             ->select(['id', 'name'])
             ->orderByDesc('id')
             ->get();
 
         $voterList = Voter::query()
             ->with(['event:id,name'])
+            ->whereHas('event', fn ($q) => $q->active())
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -45,7 +47,13 @@ class VoterController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
+            'event_id' => [
+                'required',
+                'integer',
+                Rule::exists('events', 'id')->where(function ($query) {
+                    $query->where('start_at', '<=', now())->where('end_at', '>=', now());
+                }),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'username' => [
                 'required',

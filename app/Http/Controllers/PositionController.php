@@ -15,14 +15,18 @@ class PositionController extends Controller
     public function index(Request $request)
     {
         $events = Event::query()
+            ->active()
             ->select(['id', 'name'])
             ->orderByDesc('id')
             ->get();
 
         $eventId = (int) $request->input('event_id', $events->first()?->id);
+        if ($eventId && ! $events->contains('id', $eventId)) {
+            $eventId = (int) ($events->first()?->id ?? 0);
+        }
 
         $positionList = Position::query()
-            ->where('event_id', $eventId)
+            ->when($eventId, fn ($q) => $q->where('event_id', $eventId))
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
@@ -39,7 +43,13 @@ class PositionController extends Controller
         $eventId = (int) $request->input('event_id');
 
         $validated = $request->validate([
-            'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
+            'event_id' => [
+                'required',
+                'integer',
+                Rule::exists('events', 'id')->where(function ($query) {
+                    $query->where('start_at', '<=', now())->where('end_at', '>=', now());
+                }),
+            ],
             'name' => [
                 'required',
                 'string',
@@ -67,6 +77,8 @@ class PositionController extends Controller
 
     public function update(Request $request, Position $position): RedirectResponse
     {
+        abort_unless(Event::query()->active()->whereKey($position->event_id)->exists(), 403);
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -88,6 +100,8 @@ class PositionController extends Controller
 
     public function destroy(Position $position): RedirectResponse
     {
+        abort_unless(Event::query()->active()->whereKey($position->event_id)->exists(), 403);
+
         $eventId = $position->event_id;
         $position->delete();
 
@@ -99,7 +113,13 @@ class PositionController extends Controller
     public function reorder(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'event_id' => ['required', 'integer', Rule::exists('events', 'id')],
+            'event_id' => [
+                'required',
+                'integer',
+                Rule::exists('events', 'id')->where(function ($query) {
+                    $query->where('start_at', '<=', now())->where('end_at', '>=', now());
+                }),
+            ],
             'ordered_ids' => ['required', 'array'],
             'ordered_ids.*' => ['integer', Rule::exists('positions', 'id')],
         ]);

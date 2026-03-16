@@ -13,6 +13,12 @@ class VoterImportController extends Controller
 {
     public function store(Request $request, Event $event): RedirectResponse
     {
+        if (! Event::query()->active()->whereKey($event->id)->exists()) {
+            return back()->withErrors([
+                'file' => 'Event is not active.',
+            ]);
+        }
+
         $validated = $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
         ]);

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -15,6 +16,21 @@ class Event extends Model
         'start_at',
         'end_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'start_at' => 'datetime',
+            'end_at' => 'datetime',
+        ];
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query
+            ->where('start_at', '<=', now())
+            ->where('end_at', '>=', now());
+    }
 
     public function voters()
     {
