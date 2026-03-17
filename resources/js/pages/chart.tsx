@@ -1,7 +1,6 @@
-
 import * as React from "react"
 import { TrendingUp } from "lucide-react"
-import { Label, Pie, PieChart } from "recharts"
+import { Label, Pie, PieChart, Cell } from "recharts"
 
 import {
     Card,
@@ -11,103 +10,87 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import {
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-    type ChartConfig,
-} from "@/components/ui/chart"
 
-export const description = "A donut chart with text"
 
-const chartData = [
-    { browser: "total", visitors: 275, fill: "var(--color-chrome)" },
-    { browser: "voted", visitors: 200, fill: "var(--color-safari)" },
-    { browser: "notVoted", visitors: 287, fill: "var(--color-firefox)" },
-]
 
-const chartConfig = {
-    total: {
-        label: "total",
-    },
-    voted: {
-        label: "voted",
-        color: "var(--chart-1)",
-    },
-    notVoted: {
-        label: "notVoted",
-        color: "var(--chart-2)",
-    },
-
-} satisfies ChartConfig
-
-export function ChartPieDonutText() {
-    const totalVisitors = React.useMemo(() => {
-        return chartData.reduce((acc, curr) => acc + curr.visitors, 0)
+const COLORS = ["#22c55e", "#ef4444"]
+interface Props {
+    total_voters: number
+    votes_cast: number
+    not_voted: number
+}
+export function ChartPieDonutText({ total_voters, votes_cast, not_voted }: Props) {
+    console.log(total_voters, votes_cast, not_voted)
+    const chartData = [
+        { name: "Voted", value: votes_cast },
+        { name: "Not Voted", value: not_voted },
+    ]
+    const total = React.useMemo(() => {
+        return chartData.reduce((acc, curr) => acc + curr.value, 0)
     }, [])
 
     return (
         <Card className="flex flex-col">
             <CardHeader className="items-center pb-0">
-                <CardTitle>Pie Chart - Donut with Text</CardTitle>
-                <CardDescription>January - June 2024</CardDescription>
+                <CardTitle>Voting Result</CardTitle>
+                <CardDescription>Current Status</CardDescription>
             </CardHeader>
+
             <CardContent className="flex-1 pb-0">
-                <ChartContainer
-                    config={chartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                >
-                    <PieChart>
-                        <ChartTooltip
-                            cursor={false}
-                            content={<ChartTooltipContent hideLabel />}
-                        />
-                        <Pie
-                            data={chartData}
-                            dataKey="visitors"
-                            nameKey="browser"
-                            innerRadius={60}
-                            strokeWidth={5}
-                        >
-                            <Label
-                                content={({ viewBox }) => {
-                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                                        return (
-                                            <text
+                <PieChart width={250} height={250}>
+                    <Pie
+                        data={chartData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={70}
+                        outerRadius={100}
+                        strokeWidth={3}
+                    >
+                        {chartData.map((entry, index) => (
+                            <Cell key={index} fill={COLORS[index]} />
+                        ))}
+
+                        <Label
+                            position="center"
+                            content={({ viewBox }) => {
+                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                    return (
+                                        <text
+                                            x={viewBox.cx}
+                                            y={viewBox.cy}
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                        >
+                                            <tspan
                                                 x={viewBox.cx}
                                                 y={viewBox.cy}
-                                                textAnchor="middle"
-                                                dominantBaseline="middle"
+                                                className="text-3xl font-bold fill-foreground"
                                             >
-                                                <tspan
-                                                    x={viewBox.cx}
-                                                    y={viewBox.cy}
-                                                    className="fill-foreground text-3xl font-bold"
-                                                >
-                                                    {totalVisitors.toLocaleString()}
-                                                </tspan>
-                                                <tspan
-                                                    x={viewBox.cx}
-                                                    y={(viewBox.cy || 0) + 24}
-                                                    className="fill-muted-foreground"
-                                                >
-                                                    Visitors
-                                                </tspan>
-                                            </text>
-                                        )
-                                    }
-                                }}
-                            />
-                        </Pie>
-                    </PieChart>
-                </ChartContainer>
+                                                {total}
+                                            </tspan>
+                                            <tspan
+                                                x={viewBox.cx}
+                                                y={(viewBox.cy || 0) + 22}
+                                                className="fill-muted-foreground"
+                                            >
+
+                                                Total Voters
+                                            </tspan>
+                                        </text>
+                                    )
+                                }
+                            }}
+                        />
+                    </Pie>
+                </PieChart>
             </CardContent>
+
             <CardFooter className="flex-col gap-2 text-sm">
-                <div className="flex items-center gap-2 leading-none font-medium">
-                    Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+                <div className="flex items-center gap-2 font-medium">
+                    Trending up by 5.2% <TrendingUp className="h-4 w-4" />
                 </div>
-                <div className="leading-none text-muted-foreground">
-                    Showing total visitors for the last 6 months
+                <div className="text-muted-foreground">
+                    Showing voting status
                 </div>
             </CardFooter>
         </Card>

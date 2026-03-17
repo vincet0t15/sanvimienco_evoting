@@ -117,7 +117,10 @@ function DonutChart({
             <div
                 className="relative grid size-40 place-items-center rounded-full bg-muted"
                 style={{
-                    backgroundImage: `conic-gradient(hsl(var(--primary)) ${votedPercent}%, hsl(var(--muted-foreground) / 0.2) 0)`,
+                    background: `conic-gradient(
+    #16a34a ${votedPercent}%,
+    #e5e7eb ${votedPercent}%
+  )`,
                 }}
             >
                 <div className="grid size-28 place-items-center rounded-full bg-background shadow-sm">
@@ -293,7 +296,6 @@ export default function Dashboard({ stats, recentActivity }: Props) {
                         </Card>
                     )}
                 </div>
-                <ChartPieDonutText />
                 <div>
                     <h2 className="mb-4 text-lg font-semibold">
                         System Overview
