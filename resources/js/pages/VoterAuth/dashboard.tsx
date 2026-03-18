@@ -104,7 +104,7 @@ export default function VoterDashboard({
 
         if (currentVotes.length >= maxVotes) {
             toast.error(`You can only select ${maxVotes} candidate(s) for this position.`);
-            console.log(maxVotes);
+
             return;
         }
 

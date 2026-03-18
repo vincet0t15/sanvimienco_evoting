@@ -1,7 +1,5 @@
-import * as React from "react"
-import { TrendingUp } from "lucide-react"
-import { Label, Pie, PieChart, Cell } from "recharts"
-
+import { TrendingUp } from 'lucide-react';
+import { Cell, Label, Pie, PieChart } from 'recharts';
 import {
     Card,
     CardContent,
@@ -9,25 +7,21 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from '@/components/ui/card';
 
+const COLORS = ['#22c55e', '#ef4444'];
 
-
-const COLORS = ["#22c55e", "#ef4444"]
 interface Props {
-    total_voters: number
-    votes_cast: number
-    not_voted: number
+    total_voters: number;
+    votes_cast: number;
+    not_voted: number;
 }
+
 export function ChartPieDonutText({ total_voters, votes_cast, not_voted }: Props) {
-    console.log(total_voters, votes_cast, not_voted)
     const chartData = [
-        { name: "Voted", value: votes_cast },
-        { name: "Not Voted", value: not_voted },
-    ]
-    const total = React.useMemo(() => {
-        return chartData.reduce((acc, curr) => acc + curr.value, 0)
-    }, [])
+        { name: 'Voted', value: votes_cast },
+        { name: 'Not Voted', value: not_voted },
+    ];
 
     return (
         <Card className="flex flex-col">
@@ -47,13 +41,13 @@ export function ChartPieDonutText({ total_voters, votes_cast, not_voted }: Props
                         strokeWidth={3}
                     >
                         {chartData.map((entry, index) => (
-                            <Cell key={index} fill={COLORS[index]} />
+                            <Cell key={entry.name} fill={COLORS[index]} />
                         ))}
 
                         <Label
                             position="center"
                             content={({ viewBox }) => {
-                                if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
                                     return (
                                         <text
                                             x={viewBox.cx}
@@ -64,20 +58,19 @@ export function ChartPieDonutText({ total_voters, votes_cast, not_voted }: Props
                                             <tspan
                                                 x={viewBox.cx}
                                                 y={viewBox.cy}
-                                                className="text-3xl font-bold fill-foreground"
+                                                className="fill-foreground text-3xl font-bold"
                                             >
-                                                {total}
+                                                {total_voters}
                                             </tspan>
                                             <tspan
                                                 x={viewBox.cx}
                                                 y={(viewBox.cy || 0) + 22}
                                                 className="fill-muted-foreground"
                                             >
-
                                                 Total Voters
                                             </tspan>
                                         </text>
-                                    )
+                                    );
                                 }
                             }}
                         />
@@ -89,10 +82,8 @@ export function ChartPieDonutText({ total_voters, votes_cast, not_voted }: Props
                 <div className="flex items-center gap-2 font-medium">
                     Trending up by 5.2% <TrendingUp className="h-4 w-4" />
                 </div>
-                <div className="text-muted-foreground">
-                    Showing voting status
-                </div>
+                <div className="text-muted-foreground">Showing voting status</div>
             </CardFooter>
         </Card>
-    )
+    );
 }

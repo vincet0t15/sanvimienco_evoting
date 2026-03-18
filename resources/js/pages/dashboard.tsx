@@ -28,7 +28,6 @@ import positions from '@/routes/positions';
 import results from '@/routes/results';
 import voters from '@/routes/voters';
 import type { BreadcrumbItem } from '@/types';
-import { ChartPieDonutText } from './chart';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
