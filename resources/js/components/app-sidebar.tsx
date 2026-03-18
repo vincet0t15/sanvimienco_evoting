@@ -29,6 +29,7 @@ import results from '@/routes/results';
 import users from '@/routes/users';
 import voters from '@/routes/voters';
 import type { NavGroup } from '@/types';
+import reports from '@/routes/voter/reports';
 
 const mainNavItems: NavGroup[] = [
     {
@@ -87,6 +88,11 @@ const mainNavItems: NavGroup[] = [
             {
                 title: 'Users',
                 href: users.index.url(),
+                icon: UserCog,
+            },
+            {
+                title: 'Reports',
+                href: reports.index.url(),
                 icon: UserCog,
             },
         ],

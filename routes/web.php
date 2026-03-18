@@ -4,6 +4,7 @@ use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoterAuthController;
@@ -65,14 +66,18 @@ Route::prefix('voter')->name('voter.')->group(function () {
     Route::get('login', [VoterAuthController::class, 'create'])->name('login');
     Route::post('login', [VoterAuthController::class, 'store'])->name('login.store');
 
+    // Reports
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+
+
+
+
+    // VOTER ROUTES
     Route::middleware('auth.voter')->group(function () {
-
         Route::get('dashboard', [VoterAuthController::class, 'dashboard'])->name('dashboard');
-
         Route::post('vote', [VoterAuthController::class, 'vote'])
             ->middleware('throttle:voter-vote')
             ->name('vote');
-
         Route::post('logout', [VoterAuthController::class, 'destroy'])->name('logout');
     });
 });
