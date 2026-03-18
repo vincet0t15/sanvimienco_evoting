@@ -261,15 +261,21 @@ export default function Welcome({ canRegister = true }: Props) {
                 </main>
 
                 <footer className="border-t">
-                    <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6">
-                        <span>
+                    <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-6">
+
+                        {/* Left: Copyright */}
+                        <span className="text-center md:text-left">
                             © {new Date().getFullYear()} {appName}
                         </span>
-                        <div className="flex items-center gap-3">
-                            <Link
-                                href={voter.login.url()}
-                                className="hover:underline"
-                            >
+
+                        {/* Center: Credit */}
+                        <span className="text-center text-xs md:text-sm md:flex-1">
+                            Built with by <a href="#" className="hover:underline font-bold">ZYRUS VINCE B. FAMINI</a>
+                        </span>
+
+                        {/* Right: Login links */}
+                        <div className="flex justify-center gap-3 md:justify-end">
+                            <Link href={voter.login.url()} className="hover:underline">
                                 Voter login
                             </Link>
                             <Link href={login()} className="hover:underline">
