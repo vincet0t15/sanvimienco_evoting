@@ -1,4 +1,4 @@
-import { Voter } from "./voter";
+import type { Voter } from './voter';
 
 export interface Event {
     id: number;

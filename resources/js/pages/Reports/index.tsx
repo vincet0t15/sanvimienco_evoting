@@ -1,7 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { BarChart3, FileText, ShieldCheck, Trophy, Users } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useEffect, useMemo, useState } from 'react';
+import { FileText, ShieldCheck, Users } from 'lucide-react';
+import { useState } from 'react';
 import Pagination from '@/components/paginationData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -22,14 +21,14 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useInitials } from '@/hooks/use-initials';
 import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
 import reports from '@/routes/reports';
-import { FilterProps } from '@/types/filter';
+import type { BreadcrumbItem } from '@/types';
+import type { FilterProps } from '@/types/filter';
 
 type EventPayload = {
     id: number;
@@ -143,20 +142,6 @@ export default function ReportsIndex({
     const [tab, setTab] = useState<'results' | 'candidates' | 'voters'>(
         'results',
     );
-    const [winnersOnly, setWinnersOnly] = useState(false);
-
-    const filteredPositions = useMemo(() => {
-        if (!winnersOnly) {
-            return positions;
-        }
-
-        return positions.map((position) => ({
-            ...position,
-            candidates: position.candidates.filter((candidate) =>
-                Boolean(candidate.is_winner),
-            ),
-        }));
-    }, [positions, winnersOnly]);
 
     const tabs = [
         { label: 'All', value: 'all' },
@@ -166,10 +151,6 @@ export default function ReportsIndex({
     const [voterStatusTab, setVoterStatusTab] = useState<string>(
         filters.statusId ?? 'all',
     );
-
-    useEffect(() => {
-        setVoterStatusTab(filters.statusId ?? 'all');
-    }, [filters.statusId]);
 
     const handleTabChange = (value: string) => {
         const params: Record<string, string> = {};
@@ -183,6 +164,7 @@ export default function ReportsIndex({
             preserveScroll: true,
         });
     };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Reports" />
@@ -336,7 +318,7 @@ export default function ReportsIndex({
 
                         {tab === 'results' ? (
                             <div className="space-y-4">
-                                {filteredPositions.map((position) => (
+                                {positions.map((position) => (
                                     <Card key={position.id}>
                                         <CardHeader className="pb-4">
                                             <CardTitle className="text-base">

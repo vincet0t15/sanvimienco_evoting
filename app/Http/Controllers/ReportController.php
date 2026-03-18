@@ -197,7 +197,8 @@ class ReportController extends Controller
     public function auditLogs(Request $request, Event $event)
     {
 
-        $event = Event::findOrFail($event->id);
+        $event = Event::active()
+            ->findOrFail($event->id);
 
         $voters = Voter::query()
             ->where('event_id', $event->id)
@@ -215,7 +216,8 @@ class ReportController extends Controller
     public function printAuditLogs(Request $request, Event $event)
     {
 
-        $event = Event::findOrFail($event->id);
+        $event = Event::active()
+            ->findOrFail($event->id);
 
         $voters = Voter::query()
             ->where('event_id', $event->id)

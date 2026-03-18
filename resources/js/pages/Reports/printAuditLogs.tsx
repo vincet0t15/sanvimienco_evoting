@@ -1,20 +1,20 @@
-import { Voter } from '@/types';
-import { Event } from '@/types/event';
-import { PaginatedDataResponse } from '@/types/pagination';
-import { formatDate } from 'date-fns';
-import React from 'react'
+import type { Voter } from '@/types';
+import type { Event } from '@/types/event';
+import type { PaginatedDataResponse } from '@/types/pagination';
+
 interface Props {
     event: Event;
-    voters: PaginatedDataResponse<Voter>
+    voters: PaginatedDataResponse<Voter>;
 }
 function printAuditLogs({ event, voters }: Props) {
-    const formatDate = (dateString: string) => {
+    const formatElectionDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
         });
     };
+
     return (
         <div className="mx-auto min-h-screen max-w-[216mm] bg-white p-8 font-sans text-[11px] leading-[1.3] text-black print:p-0">
             <div className="print:w-full">
@@ -143,7 +143,9 @@ function printAuditLogs({ event, voters }: Props) {
                                     </p>
                                     <p className="m-0 text-[12px]">
                                         Date of Election:{' '}
-                                        {formatDate(event.start_at)}
+                                        {event.start_at
+                                            ? formatElectionDate(event.start_at)
+                                            : ''}
                                     </p>
                                 </div>
 
@@ -176,21 +178,18 @@ function printAuditLogs({ event, voters }: Props) {
                                         <tbody>
                                             {voters.data.map((voter) => (
                                                 <tr key={voter.id}>
-
                                                     <td className="border border-black px-2 py-1 uppercase">
                                                         {voter.name}
                                                     </td>
                                                     <td className="border border-black px-2 py-1 font-mono">
                                                         {voter.username}
                                                     </td>
-
-
                                                 </tr>
                                             ))}
                                             {voters.data.length === 0 && (
                                                 <tr>
                                                     <td
-                                                        colSpan={5}
+                                                        colSpan={2}
                                                         className="border border-black px-2 py-4 text-center italic"
                                                     >
                                                         No voting activity
@@ -201,8 +200,6 @@ function printAuditLogs({ event, voters }: Props) {
                                         </tbody>
                                     </table>
                                 </div>
-
-
                             </td>
                         </tr>
                     </tbody>
@@ -225,8 +222,7 @@ function printAuditLogs({ event, voters }: Props) {
                 }
             `}</style>
         </div>
-
-    )
+    );
 }
 
-export default printAuditLogs
+export default printAuditLogs;

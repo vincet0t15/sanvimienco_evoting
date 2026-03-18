@@ -25,11 +25,11 @@ import { dashboard } from '@/routes';
 import candidates from '@/routes/candidates';
 import events from '@/routes/events';
 import positions from '@/routes/positions';
+import reports from '@/routes/reports';
 import results from '@/routes/results';
 import users from '@/routes/users';
 import voters from '@/routes/voters';
 import type { NavGroup } from '@/types';
-import reports from '@/routes/reports';
 
 const mainNavItems: NavGroup[] = [
     {

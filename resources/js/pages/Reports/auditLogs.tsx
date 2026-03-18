@@ -1,9 +1,15 @@
-import AppLayout from '@/layouts/app-layout'
-import { dashboard } from '@/routes';
-import { BreadcrumbItem, Voter } from '@/types';
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Printer, ShieldCheck } from 'lucide-react';
 import Heading from '@/components/heading';
+import Pagination from '@/components/paginationData';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Table,
     TableBody,
@@ -12,19 +18,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { Event } from '@/types/event';
-import { Button } from '@/components/ui/button';
-import { PaginatedDataResponse } from '@/types/pagination';
-import { log } from 'console';
-import Pagination from '@/components/paginationData';
+import AppLayout from '@/layouts/app-layout';
+import { dashboard } from '@/routes';
 import reports from '@/routes/reports';
+import type { BreadcrumbItem, Voter } from '@/types';
+import type { Event } from '@/types/event';
+import type { PaginatedDataResponse } from '@/types/pagination';
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -38,10 +38,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Props {
     event: Event;
-    voters: PaginatedDataResponse<Voter>
+    voters: PaginatedDataResponse<Voter>;
 }
 function auditLogs({ event, voters }: Props) {
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Audit Logs" />
@@ -102,7 +101,7 @@ function auditLogs({ event, voters }: Props) {
                                 {voters.data.length === 0 ? (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={6}
+                                            colSpan={2}
                                             className="h-24 text-center text-muted-foreground"
                                         >
                                             No voting activity recorded yet.
@@ -129,7 +128,7 @@ function auditLogs({ event, voters }: Props) {
                 </Card>
             </div>
         </AppLayout>
-    )
+    );
 }
 
-export default auditLogs
+export default auditLogs;
