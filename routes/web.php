@@ -64,6 +64,7 @@ Route::middleware(['auth', 'active.user', 'verified'])->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/audit-logs/{event}', [ReportController::class, 'auditLogs'])->name('reports.audit-logs');
     Route::get('reports/print-audit-logs/{event}', [ReportController::class, 'printAuditLogs'])->name('reports.print-audit-logs');
+    Route::get('reports/print-official-report/{event}', [ReportController::class, 'printOfficialReport'])->name('reports.print-official-report');
 });
 
 Route::prefix('voter')->name('voter.')->group(function () {

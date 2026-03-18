@@ -180,20 +180,34 @@ export default function ReportsIndex({
                     </div>
 
                     <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
-                        <Button variant="outline" >
-                            <Link href={'/reports/audit-logs/' + event?.id} className="flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4" />
-                                Audit Log
-                            </Link>
-                        </Button>
+                        {event ? (
+                            <>
+                                <Button variant="outline">
+                                    <Link
+                                        href={`/reports/audit-logs/${event.id}`}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <ShieldCheck className="h-4 w-4" />
+                                        Audit Log
+                                    </Link>
+                                </Button>
 
-                        <Button
-                            onClick={() => window.print()}
-                            className="bg-emerald-600 text-white hover:bg-emerald-700"
-                        >
-                            <FileText className="h-4 w-4" />
-                            Official Report
-                        </Button>
+                                <Button
+                                    asChild
+                                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                                >
+                                    <a
+                                        href={`/reports/print-official-report/${event.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2"
+                                    >
+                                        <FileText className="h-4 w-4" />
+                                        Official Report
+                                    </a>
+                                </Button>
+                            </>
+                        ) : null}
                     </div>
                 </div>
 

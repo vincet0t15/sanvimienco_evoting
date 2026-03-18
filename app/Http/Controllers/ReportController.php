@@ -232,4 +232,103 @@ class ReportController extends Controller
             'voters' => $voters,
         ]);
     }
+
+    public function printOfficialReport(Request $request, Event $event)
+    {
+        $event = Event::active()
+            ->select(['id', 'name', 'start_at', 'end_at', 'is_active'])
+            ->findOrFail($event->id);
+
+        $totalVoters = Voter::query()
+            ->where('event_id', $event->id)
+            ->count();
+
+        $votesCast = Vote::query()
+            ->where('event_id', $event->id)
+            ->distinct()
+            ->count('voter_id');
+
+        $didNotVoteCount = max(0, $totalVoters - $votesCast);
+
+        $turnoutPercentage = $totalVoters > 0
+            ? round(($votesCast / $totalVoters) * 100, 2)
+            : 0;
+
+        $positionStats = Vote::query()
+            ->where('event_id', $event->id)
+            ->selectRaw('position_id, COUNT(*) as total_votes, COUNT(DISTINCT voter_id) as voters_voted')
+            ->groupBy('position_id')
+            ->get()
+            ->keyBy('position_id');
+
+        $voteCountsByCandidate = Vote::query()
+            ->where('event_id', $event->id)
+            ->selectRaw('candidate_id, COUNT(*) as votes_count')
+            ->groupBy('candidate_id')
+            ->pluck('votes_count', 'candidate_id')
+            ->map(fn($count) => (int) $count)
+            ->all();
+
+        $positions = Position::query()
+            ->where('event_id', $event->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(['id', 'name', 'max_vote']);
+
+        $positionPayload = $positions->map(function (Position $position) use ($event, $positionStats, $totalVoters, $voteCountsByCandidate) {
+            $stats = $positionStats->get($position->id);
+
+            $totalVotesForPosition = $stats ? (int) $stats->total_votes : 0;
+            $votersVotedForPosition = $stats ? (int) $stats->voters_voted : 0;
+            $abstentions = max(0, $totalVoters - $votersVotedForPosition);
+
+            $candidates = Candidate::query()
+                ->where('event_id', $event->id)
+                ->where('position_id', $position->id)
+                ->orderBy('id')
+                ->get(['id', 'name', 'photo_path'])
+                ->map(function (Candidate $candidate) use ($totalVotesForPosition, $voteCountsByCandidate) {
+                    $votesCount = $voteCountsByCandidate[$candidate->id] ?? 0;
+                    $percent = $totalVotesForPosition > 0
+                        ? round(($votesCount / $totalVotesForPosition) * 100, 2)
+                        : 0;
+
+                    return [
+                        'id' => $candidate->id,
+                        'name' => $candidate->name,
+                        'photo_url' => $candidate->photo_path ? asset('storage/' . $candidate->photo_path) : null,
+                        'votes_count' => $votesCount,
+                        'percent' => $percent,
+                    ];
+                })
+                ->sortByDesc('votes_count')
+                ->values();
+
+            return [
+                'id' => $position->id,
+                'name' => $position->name,
+                'max_vote' => (int) $position->max_vote,
+                'total_votes' => $totalVotesForPosition,
+                'abstentions' => $abstentions,
+                'candidates' => $candidates,
+            ];
+        })->values();
+
+        return Inertia::render('Reports/printOfficialReport', [
+            'event' => [
+                'id' => $event->id,
+                'name' => $event->name,
+                'is_active' => (bool) $event->is_active,
+                'start_at' => $event->start_at?->toIso8601String(),
+                'end_at' => $event->end_at?->toIso8601String(),
+            ],
+            'stats' => [
+                'total_voters' => $totalVoters,
+                'votes_cast' => $votesCast,
+                'turnout_percentage' => $turnoutPercentage,
+                'did_not_vote' => $didNotVoteCount,
+            ],
+            'positions' => $positionPayload,
+        ]);
+    }
 }
