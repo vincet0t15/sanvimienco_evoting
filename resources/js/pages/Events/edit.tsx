@@ -42,12 +42,36 @@ function normalizeTime(value: string): string {
     return value;
 }
 
+function pad2(value: number): string {
+    return String(value).padStart(2, '0');
+}
+
+function toLocalParts(date: Date): { date: string; time: string } {
+    return {
+        date: `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`,
+        time: `${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`,
+    };
+}
+
 function splitDateTime(value: string): { date: string; time: string } {
     if (!value) {
         return { date: '', time: '' };
     }
 
     const trimmed = value.trim();
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return { date: trimmed, time: '' };
+    }
+
+    const candidate = trimmed.includes(' ') && !trimmed.includes('T')
+        ? trimmed.replace(' ', 'T')
+        : trimmed;
+    const parsed = new Date(candidate);
+
+    if (!Number.isNaN(parsed.getTime())) {
+        return toLocalParts(parsed);
+    }
 
     let date = '';
     let time = '';
@@ -190,12 +214,14 @@ function DateTimeInput({
 }
 
 export default function EventEditDialog({ open, setOpen, event }: Props) {
+    const normalizedStartAt = toCanonicalDateTime(event.start_at) ?? '';
+    const normalizedEndAt = toCanonicalDateTime(event.end_at) ?? '';
     const { data, setData, put, reset, processing, errors } =
         useForm<EventUpsertRequest>({
             name: event.name,
             description: event.description || '',
-            start_at: event.start_at,
-            end_at: event.end_at,
+            start_at: normalizedStartAt,
+            end_at: normalizedEndAt,
         });
 
     const rangeError = useMemo(() => {
