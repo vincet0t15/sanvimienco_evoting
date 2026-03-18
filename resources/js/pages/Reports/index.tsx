@@ -212,18 +212,6 @@ export default function ReportsIndex({
                             <FileText className="h-4 w-4" />
                             Official Report
                         </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => setWinnersOnly((prev) => !prev)}
-                            className={cn(
-                                winnersOnly
-                                    ? 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/20'
-                                    : undefined,
-                            )}
-                        >
-                            <Trophy className="h-4 w-4" />
-                            Winners Only
-                        </Button>
                     </div>
                 </div>
 
