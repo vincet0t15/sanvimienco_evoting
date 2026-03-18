@@ -59,17 +59,17 @@ Route::middleware(['auth', 'active.user', 'verified'])->group(function () {
     Route::get('voters/print', [VoterController::class, 'print'])->name('voters.print');
     Route::get('voters/{voter}/votes', [VoterController::class, 'votes'])->name('voters.votes');
     Route::delete('voters/{voter}/votes', [VoterController::class, 'destroyVotes'])->name('voters.votes.destroy');
+
+    // Reports
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/audit-logs/{event}', [ReportController::class, 'auditLogs'])->name('reports.audit-logs');
+    Route::get('reports/print-audit-logs/{event}', [ReportController::class, 'printAuditLogs'])->name('reports.print-audit-logs');
 });
 
 Route::prefix('voter')->name('voter.')->group(function () {
 
     Route::get('login', [VoterAuthController::class, 'create'])->name('login');
     Route::post('login', [VoterAuthController::class, 'store'])->name('login.store');
-
-    // Reports
-    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-
-
 
 
     // VOTER ROUTES

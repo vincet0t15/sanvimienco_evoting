@@ -29,7 +29,7 @@ import results from '@/routes/results';
 import users from '@/routes/users';
 import voters from '@/routes/voters';
 import type { NavGroup } from '@/types';
-import reports from '@/routes/voter/reports';
+import reports from '@/routes/reports';
 
 const mainNavItems: NavGroup[] = [
     {
