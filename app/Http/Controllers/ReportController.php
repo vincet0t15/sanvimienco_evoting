@@ -14,6 +14,9 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
+        $statusId = $request->input('statusId');
+        $statusId = is_string($statusId) && $statusId !== '' ? $statusId : null;
+
         $event = Event::query()
             ->select(['id', 'name', 'start_at', 'end_at', 'is_active'])
             ->active()
@@ -32,6 +35,9 @@ class ReportController extends Controller
                 'positions' => [],
                 'candidates' => [],
                 'voters' => null,
+                'filters' => [
+                    'statusId' => $statusId,
+                ],
             ]);
         }
 
@@ -141,8 +147,18 @@ class ReportController extends Controller
             })
             ->values();
 
+        $hasVotedFilter = match ($statusId) {
+            '1' => true,
+            '0' => false,
+            default => null,
+        };
+
         $voters = Voter::query()
             ->where('event_id', $event->id)
+            ->when(
+                $hasVotedFilter !== null,
+                fn($query) => $query->where('has_voted', $hasVotedFilter),
+            )
             ->orderBy('name')
             ->orderBy('id')
             ->paginate(20)
@@ -172,6 +188,9 @@ class ReportController extends Controller
             'positions' => $positionPayload,
             'candidates' => $candidatesPayload,
             'voters' => $voters,
+            'filters' => [
+                'statusId' => $statusId,
+            ],
         ]);
     }
 

@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { PaginatedDataResponse } from '@/types/pagination';
 import { log } from 'console';
 import Pagination from '@/components/paginationData';
+import reports from '@/routes/reports';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -40,13 +41,13 @@ interface Props {
     voters: PaginatedDataResponse<Voter>
 }
 function auditLogs({ event, voters }: Props) {
-    console.log(event)
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Audit Logs" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center gap-2">
-                    <Link className="text-muted-foreground hover:text-foreground">
+                    <Link href={reports.index.url()} className="text-muted-foreground hover:text-foreground">
                         <ArrowLeft className="h-4 w-4" />
                     </Link>
                     <Heading

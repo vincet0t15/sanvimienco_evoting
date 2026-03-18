@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { BarChart3, FileText, ShieldCheck, Trophy, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useMemo, useState } from 'react';
 import Pagination from '@/components/paginationData';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 import reports from '@/routes/reports';
+import { FilterProps } from '@/types/filter';
 
 type EventPayload = {
     id: number;
@@ -97,6 +99,7 @@ type Props = {
     positions: PositionPayload[];
     candidates: CandidateRow[];
     voters: PaginatedDataResponse<VoterRow> | null;
+    filters: FilterProps
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -134,6 +137,7 @@ export default function ReportsIndex({
     positions,
     candidates,
     voters,
+    filters,
 }: Props) {
     const initials = useInitials();
     const [tab, setTab] = useState<'results' | 'candidates' | 'voters'>(
@@ -154,6 +158,31 @@ export default function ReportsIndex({
         }));
     }, [positions, winnersOnly]);
 
+    const tabs = [
+        { label: 'All', value: 'all' },
+        { label: 'Voted', value: '1' },
+        { label: 'Not Voted', value: '0' },
+    ];
+    const [voterStatusTab, setVoterStatusTab] = useState<string>(
+        filters.statusId ?? 'all',
+    );
+
+    useEffect(() => {
+        setVoterStatusTab(filters.statusId ?? 'all');
+    }, [filters.statusId]);
+
+    const handleTabChange = (value: string) => {
+        const params: Record<string, string> = {};
+
+        if (value !== 'all') {
+            params.statusId = value;
+        }
+
+        router.get(reports.index.url(), params, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Reports" />
@@ -175,12 +204,7 @@ export default function ReportsIndex({
                                 Audit Log
                             </Link>
                         </Button>
-                        <Button variant="outline" >
-                            <Link className="flex items-center gap-2">
-                                <BarChart3 className="h-4 w-4" />
-                                Analytics
-                            </Link>
-                        </Button>
+
                         <Button
                             onClick={() => window.print()}
                             className="bg-emerald-600 text-white hover:bg-emerald-700"
@@ -489,13 +513,35 @@ export default function ReportsIndex({
 
                         {tab === 'voters' ? (
                             <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-base">
-                                        Voters
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Voting status for the selected event
-                                    </CardDescription>
+                                <CardHeader className='justify-between flex items-center'>
+                                    <div>
+                                        <CardTitle className="text-base">
+                                            Voters
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Voting status for the selected event
+                                        </CardDescription>
+                                    </div>
+                                    <div>
+                                        <Tabs
+                                            value={voterStatusTab}
+                                            onValueChange={(value) => {
+                                                setVoterStatusTab(value);
+                                                handleTabChange(value);
+                                            }}
+                                        >
+                                            <TabsList>
+                                                {tabs.map((t, index) => (
+                                                    <TabsTrigger
+                                                        key={index}
+                                                        value={t.value}
+                                                    >
+                                                        {t.label}
+                                                    </TabsTrigger>
+                                                ))}
+                                            </TabsList>
+                                        </Tabs>
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {!voters ? (
