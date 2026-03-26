@@ -30,11 +30,11 @@ class CandidateController extends Controller
 
         $positions = $eventId
             ? Position::query()
-                ->select(['id', 'event_id', 'name', 'max_vote'])
-                ->where('event_id', $eventId)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get()
+            ->select(['id', 'event_id', 'name', 'max_vote'])
+            ->where('event_id', $eventId)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get()
             : collect();
 
         $positionsByEvent = Position::query()
@@ -61,23 +61,23 @@ class CandidateController extends Controller
 
         $candidateList = $eventId
             ? Candidate::query()
-                ->where('event_id', $eventId)
-                ->when($positionId > 0, fn ($q) => $q->where('position_id', $positionId))
-                ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                ->orderBy('id')
-                ->get()
-                ->map(function (Candidate $candidate) {
-                    return [
-                        'id' => $candidate->id,
-                        'event_id' => $candidate->event_id,
-                        'position_id' => $candidate->position_id,
-                        'name' => $candidate->name,
-                        'photo_path' => $candidate->photo_path,
-                        'photo_url' => $candidate->photo_path
-                            ? asset('storage/'.$candidate->photo_path)
-                            : null,
-                    ];
-                })
+            ->where('event_id', $eventId)
+            ->when($positionId > 0, fn($q) => $q->where('position_id', $positionId))
+            ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"))
+            ->orderBy('id')
+            ->get()
+            ->map(function (Candidate $candidate) {
+                return [
+                    'id' => $candidate->id,
+                    'event_id' => $candidate->event_id,
+                    'position_id' => $candidate->position_id,
+                    'name' => $candidate->name,
+                    'photo_path' => $candidate->photo_path,
+                    'photo_url' => $candidate->photo_path
+                        ? asset('storage/' . $candidate->photo_path)
+                        : null,
+                ];
+            })
             : collect();
 
         return Inertia::render('Candidates/index', [

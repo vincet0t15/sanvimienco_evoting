@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle, UploadIcon, XIcon } from 'lucide-react';
-import type { ChangeEvent, FormEventHandler } from 'react';
+import type { ChangeEvent, FormEventHandler, SubmitEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
@@ -50,6 +50,7 @@ export default function CandidateEditDialog({
         existingPhotoUrl,
     );
     const photoPreviewUrlRef = useRef<string | null>(null);
+
     const { data, setData, post, processing, errors, reset } =
         useForm<CandidateUpdateForm>({
             _method: 'put',
@@ -71,7 +72,7 @@ export default function CandidateEditDialog({
         setData(e.target.id as keyof CandidateUpdateForm, e.target.value);
     };
 
-    const submit: FormEventHandler = (e) => {
+    const submit: SubmitEventHandler = (e) => {
         e.preventDefault();
         post(`/candidates/${candidate.id}`, {
             forceFormData: true,
