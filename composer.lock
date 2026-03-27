@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5505df303ac08f2182db8859c3bca5b0",
+    "content-hash": "fd60f2f9d7330c2a6bd1ef2fe5055494",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -395,6 +395,62 @@
                 "source": "https://github.com/DASPRiD/Enum/tree/1.0.7"
             },
             "time": "2025-09-16T12:23:56+00:00"
+        },
+        {
+            "name": "dev-reymark/laravel-source-encryptor",
+            "version": "v1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dev-reymark/laravel-source-encryptor.git",
+                "reference": "fdae66db1bbe8211a2b36fe05270fba56ab10731"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dev-reymark/laravel-source-encryptor/zipball/fdae66db1bbe8211a2b36fe05270fba56ab10731",
+                "reference": "fdae66db1bbe8211a2b36fe05270fba56ab10731",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "DevReymark\\SourceEncryptor\\SourceEncryptorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DevReymark\\SourceEncryptor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rey Mark Tapar",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Encrypt Laravel source code for secure Laravel distribution",
+            "homepage": "https://github.com/dev-reymark/laravel-source-encryptor",
+            "keywords": [
+                "code-protection",
+                "encryption",
+                "laravel",
+                "laravel-package",
+                "source-protection"
+            ],
+            "support": {
+                "issues": "https://github.com/dev-reymark/laravel-source-encryptor/issues",
+                "source": "https://github.com/dev-reymark/laravel-source-encryptor/tree/v1.0.3"
+            },
+            "time": "2026-03-05T15:17:28+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
